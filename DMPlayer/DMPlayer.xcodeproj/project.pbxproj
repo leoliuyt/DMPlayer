@@ -14,6 +14,8 @@
 		6B53A4FB200F5D1A004D0877 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6B53A4FA200F5D1A004D0877 /* Assets.xcassets */; };
 		6B53A4FE200F5D1A004D0877 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6B53A4FC200F5D1A004D0877 /* LaunchScreen.storyboard */; };
 		6B53A501200F5D1A004D0877 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A500200F5D1A004D0877 /* main.m */; };
+		6B53A50D200F6155004D0877 /* LLPlayerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A50C200F6155004D0877 /* LLPlayerView.m */; };
+		6B53A510200F61B0004D0877 /* LLPlaybackControlView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +30,12 @@
 		6B53A4FD200F5D1A004D0877 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6B53A4FF200F5D1A004D0877 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6B53A500200F5D1A004D0877 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6B53A50B200F6155004D0877 /* LLPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlayerView.h; sourceTree = "<group>"; };
+		6B53A50C200F6155004D0877 /* LLPlayerView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LLPlayerView.m; sourceTree = "<group>"; };
+		6B53A50E200F61B0004D0877 /* LLPlaybackControlView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlView.h; sourceTree = "<group>"; };
+		6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LLPlaybackControlView.m; sourceTree = "<group>"; };
+		6B53A511200F61F2004D0877 /* LLPlaybackControlProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlProtocol.h; sourceTree = "<group>"; };
+		6B53A512200F6264004D0877 /* LLPlayerConfigure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlayerConfigure.h; sourceTree = "<group>"; };
 		FCB175FD85D9B497F20CDEB8 /* Pods-DMPlayer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DMPlayer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-DMPlayer/Pods-DMPlayer.debug.xcconfig"; sourceTree = "<group>"; };
 		FE2B7164A59049513EAFBCA8 /* libPods-DMPlayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-DMPlayer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -65,6 +73,7 @@
 		6B53A4F0200F5D1A004D0877 /* DMPlayer */ = {
 			isa = PBXGroup;
 			children = (
+				6B53A507200F60A5004D0877 /* DMPlayer */,
 				6B53A4F1200F5D1A004D0877 /* AppDelegate.h */,
 				6B53A4F2200F5D1A004D0877 /* AppDelegate.m */,
 				6B53A4F4200F5D1A004D0877 /* ViewController.h */,
@@ -74,6 +83,19 @@
 				6B53A4FC200F5D1A004D0877 /* LaunchScreen.storyboard */,
 				6B53A4FF200F5D1A004D0877 /* Info.plist */,
 				6B53A500200F5D1A004D0877 /* main.m */,
+			);
+			path = DMPlayer;
+			sourceTree = "<group>";
+		};
+		6B53A507200F60A5004D0877 /* DMPlayer */ = {
+			isa = PBXGroup;
+			children = (
+				6B53A50B200F6155004D0877 /* LLPlayerView.h */,
+				6B53A50C200F6155004D0877 /* LLPlayerView.m */,
+				6B53A50E200F61B0004D0877 /* LLPlaybackControlView.h */,
+				6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */,
+				6B53A511200F61F2004D0877 /* LLPlaybackControlProtocol.h */,
+				6B53A512200F6264004D0877 /* LLPlayerConfigure.h */,
 			);
 			path = DMPlayer;
 			sourceTree = "<group>";
@@ -217,7 +239,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6B53A510200F61B0004D0877 /* LLPlaybackControlView.m in Sources */,
 				6B53A4F6200F5D1A004D0877 /* ViewController.m in Sources */,
+				6B53A50D200F6155004D0877 /* LLPlayerView.m in Sources */,
 				6B53A501200F5D1A004D0877 /* main.m in Sources */,
 				6B53A4F3200F5D1A004D0877 /* AppDelegate.m in Sources */,
 			);
