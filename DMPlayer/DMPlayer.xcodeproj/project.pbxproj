@@ -16,6 +16,8 @@
 		6B53A501200F5D1A004D0877 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A500200F5D1A004D0877 /* main.m */; };
 		6B53A50D200F6155004D0877 /* LLPlayerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A50C200F6155004D0877 /* LLPlayerView.m */; };
 		6B53A510200F61B0004D0877 /* LLPlaybackControlView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */; };
+		9EAAAB15200F8CBE00AB82F5 /* LLPlayer.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9EAAAB14200F8CBE00AB82F5 /* LLPlayer.xcassets */; };
+		9EAAAB18200F976000AB82F5 /* UIColor+LL.m in Sources */ = {isa = PBXBuildFile; fileRef = 9EAAAB17200F976000AB82F5 /* UIColor+LL.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,9 @@
 		6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LLPlaybackControlView.m; sourceTree = "<group>"; };
 		6B53A511200F61F2004D0877 /* LLPlaybackControlProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlProtocol.h; sourceTree = "<group>"; };
 		6B53A512200F6264004D0877 /* LLPlayerConfigure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlayerConfigure.h; sourceTree = "<group>"; };
+		9EAAAB14200F8CBE00AB82F5 /* LLPlayer.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = LLPlayer.xcassets; sourceTree = "<group>"; };
+		9EAAAB16200F976000AB82F5 /* UIColor+LL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIColor+LL.h"; sourceTree = "<group>"; };
+		9EAAAB17200F976000AB82F5 /* UIColor+LL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIColor+LL.m"; sourceTree = "<group>"; };
 		FCB175FD85D9B497F20CDEB8 /* Pods-DMPlayer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DMPlayer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-DMPlayer/Pods-DMPlayer.debug.xcconfig"; sourceTree = "<group>"; };
 		FE2B7164A59049513EAFBCA8 /* libPods-DMPlayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-DMPlayer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -90,12 +95,15 @@
 		6B53A507200F60A5004D0877 /* DMPlayer */ = {
 			isa = PBXGroup;
 			children = (
+				9EAAAB16200F976000AB82F5 /* UIColor+LL.h */,
+				9EAAAB17200F976000AB82F5 /* UIColor+LL.m */,
 				6B53A50B200F6155004D0877 /* LLPlayerView.h */,
 				6B53A50C200F6155004D0877 /* LLPlayerView.m */,
 				6B53A50E200F61B0004D0877 /* LLPlaybackControlView.h */,
 				6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */,
 				6B53A511200F61F2004D0877 /* LLPlaybackControlProtocol.h */,
 				6B53A512200F6264004D0877 /* LLPlayerConfigure.h */,
+				9EAAAB14200F8CBE00AB82F5 /* LLPlayer.xcassets */,
 			);
 			path = DMPlayer;
 			sourceTree = "<group>";
@@ -151,7 +159,7 @@
 				TargetAttributes = {
 					6B53A4ED200F5D1A004D0877 = {
 						CreatedOnToolsVersion = 9.2;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -180,6 +188,7 @@
 			files = (
 				6B53A4FE200F5D1A004D0877 /* LaunchScreen.storyboard in Resources */,
 				6B53A4FB200F5D1A004D0877 /* Assets.xcassets in Resources */,
+				9EAAAB15200F8CBE00AB82F5 /* LLPlayer.xcassets in Resources */,
 				6B53A4F9200F5D1A004D0877 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -223,13 +232,16 @@
 			files = (
 			);
 			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-DMPlayer-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -242,6 +254,7 @@
 				6B53A510200F61B0004D0877 /* LLPlaybackControlView.m in Sources */,
 				6B53A4F6200F5D1A004D0877 /* ViewController.m in Sources */,
 				6B53A50D200F6155004D0877 /* LLPlayerView.m in Sources */,
+				9EAAAB18200F976000AB82F5 /* UIColor+LL.m in Sources */,
 				6B53A501200F5D1A004D0877 /* main.m in Sources */,
 				6B53A4F3200F5D1A004D0877 /* AppDelegate.m in Sources */,
 			);
@@ -378,11 +391,15 @@
 			baseConfigurationReference = FCB175FD85D9B497F20CDEB8 /* Pods-DMPlayer.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = XWNPFKK4U5;
 				INFOPLIST_FILE = DMPlayer/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ll.DMPlayer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "c3edb0b4-c573-465a-a1f7-26cfed9ec28b";
+				PROVISIONING_PROFILE_SPECIFIER = all_20171024;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -392,11 +409,14 @@
 			baseConfigurationReference = 0ED297515B5F3FB5AAD9DC28 /* Pods-DMPlayer.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = DMPlayer/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ll.DMPlayer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
