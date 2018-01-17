@@ -61,3 +61,7 @@ fastlane/test_output
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+/DMPlayer/Pods
+/DMPlayer/Podfile.lock
+/DMPlayer/DMPlayer.xcworkspace/contents.xcworkspacedata
+/DMPlayer/DMPlayer.xcodeproj/project.xcworkspace/contents.xcworkspacedata
