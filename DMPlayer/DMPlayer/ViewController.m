@@ -7,6 +7,9 @@
 //
 
 #import "ViewController.h"
+#import <Masonry.h>
+
+#import "LLPlaybackControlView.h"
 
 @interface ViewController ()
 
@@ -17,6 +20,16 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    
+    LLPlaybackControlView *controlView = [[LLPlaybackControlView alloc] init];
+    controlView.backgroundColor = [UIColor grayColor];
+    [self.view addSubview:controlView];
+    [controlView mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.left.right.equalTo(self.view);
+//        make.top.equalTo(self.view).offset(64.);
+//        make.height.equalTo(@160.);
+        make.edges.equalTo(self.view);
+    }];
 }
 
 

@@ -7,16 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "LLPlaybackControlProtocol.h"
+#import "LLPlaybackControlViewProtocol.h"
+#import "LLPlaybackControlDelegate.h"
 
 @interface LLPlaybackControlView :UIView<LLPlaybackControlViewProtocol>
-
-
 
 @property (nonatomic, assign) BOOL hideToolBar;//设置后直接隐藏
 
 //MARK: LLPlaybackControlViewProtocol 方法
-@property (nonatomic, weak) id<LLPlaybackControlProtocol> delegate;
+@property (nonatomic, weak) id<LLPlaybackControlDelegate> delegate;
 
 - (void)changePlayStatus:(BOOL)play;
 

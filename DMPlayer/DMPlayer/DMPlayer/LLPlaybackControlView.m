@@ -11,26 +11,26 @@
 #import "LLPlayerConfigure.h"
 #import "UIColor+LL.h"
 
-static CGFloat kToolHeight = 64; //标题和底部视图的高度
+static CGFloat kPlayerTopToolHeight = 64; //标题和底部视图的高度
+static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 
 @interface LLPlaybackControlView()
 
-@property (nonatomic, strong) UIButton *centerPlayBtn;
+@property (nonatomic, strong) UIView *topView;
+@property (nonatomic, strong) UIImageView *topBgImageView;
 @property (nonatomic, strong) UIButton *backBtn;
-@property (nonatomic, strong) UIButton *playBtn;
-@property (nonatomic, strong) UIButton *fullBtn;
-@property (nonatomic, strong) UIButton *shrinkBtn;
-
 @property (nonatomic, strong) UILabel *titleLabel;
 
-@property (nonatomic, strong) UISlider *progressSlider;
-
-@property (nonatomic, strong) UILabel *timeLabel;
-@property (nonatomic, strong) UIView *topView;
 @property (nonatomic, strong) UIView *bottomView;
-
-@property (nonatomic, strong) UIImageView *topBgImageView;
 @property (nonatomic, strong) UIImageView *bottomBgImageView;
+@property (nonatomic, strong) UIButton *playBtn;
+@property (nonatomic, strong) UIButton *fullBtn;
+@property (nonatomic, strong) UISlider *progressSlider;
+@property (nonatomic, strong) UILabel *totalTimeLabel;
+@property (nonatomic, strong) UILabel *currentTimeLabel;
+@property (nonatomic, strong) UIButton *downBtn;
+
+@property (nonatomic, strong) UIButton *centerPlayBtn;
 
 @end
 
@@ -57,87 +57,167 @@ static CGFloat kToolHeight = 64; //标题和底部视图的高度
 
 - (void)makeUI
 {
+    //topview UI
     [self addSubview:self.topView];
     [self.topView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.top.right.equalTo(self);
-        make.height.equalTo(@(kToolHeight));
+        make.height.equalTo(@(kPlayerTopToolHeight));
     }];
     
-    [self addSubview:self.bottomView];
-    [self.bottomView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.right.bottom.equalTo(self);
-        make.height.equalTo(@(kToolHeight));
-    }];
-    
+    //顶部阴影
     [self.topView addSubview:self.topBgImageView];
     [self.topBgImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.topView);
     }];
     
+    //返回
     [self.topView addSubview:self.backBtn];
     [self.backBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.topView).offset(10.);
+        make.left.equalTo(self.topView).offset(20.);
         make.top.equalTo(self.topView).offset(20.);
-        make.width.height.equalTo(@44.);
+        make.width.height.equalTo(@40.);
     }];
     
+    //title
     [self.topView addSubview:self.titleLabel];
     [self.titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.backBtn.mas_right).offset(10.);
         make.top.bottom.right.equalTo(self.topView);
     }];
     
+    //bottomview UI
+    [self addSubview:self.bottomView];
+    [self.bottomView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.bottom.equalTo(self);
+        make.height.equalTo(@(kPlayerBottomToolH));
+    }];
+    
+     //底部阴影
     [self.bottomView addSubview:self.bottomBgImageView];
     [self.bottomBgImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.bottomView);
     }];
+    
+    //play pause
     [self.bottomView addSubview:self.playBtn];
     [self.playBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.bottomView).offset(0.);
-        make.bottom.equalTo(self.bottomView).offset(-10.);
-        make.width.height.equalTo(@44.);
+        make.left.equalTo(self.bottomView);
+        make.centerY.equalTo(self.bottomView);
+        make.width.equalTo(@44.);
+        make.height.equalTo(@(kPlayerBottomToolH));
     }];
     
+    //全屏 小屏
     [self.bottomView addSubview:self.fullBtn];
     [self.fullBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.top.bottom.equalTo(self.bottomView);
-        make.width.equalTo(@(kToolHeight));
+        make.right.equalTo(self.bottomView);
+        make.centerY.equalTo(self.bottomView);
+        make.width.equalTo(@(44.));
+        make.height.equalTo(@(kPlayerBottomToolH));
     }];
 
-    [self.bottomView addSubview:self.shrinkBtn];
-    [self.shrinkBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.top.bottom.equalTo(self.bottomView);
-        make.width.equalTo(@(kToolHeight));
-    }];
-    
+    //进度条
     [self.bottomView addSubview:self.progressSlider];
     [self.progressSlider mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.playBtn.mas_right).offset(5.);
-        make.right.equalTo(self.bottomView).offset(-95.);
-        make.centerY.equalTo(self.playBtn);
+        make.left.equalTo(self.playBtn.mas_right);
+        make.right.equalTo(self.fullBtn.mas_left);
+        make.centerY.equalTo(self.bottomView).offset(-7.);
         make.height.equalTo(@20.);
     }];
     
-    [self.bottomView addSubview:self.timeLabel];
-    [self.timeLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.bottomView).offset(-10.);
-        make.centerY.equalTo(self.playBtn);
-        make.width.equalTo(@80.);
-        make.height.equalTo(@20.);
+    //时间
+    [self.bottomView addSubview:self.currentTimeLabel];
+    [self.currentTimeLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.progressSlider);
+        make.centerY.equalTo(self.bottomView).offset(6.);
     }];
     
-    [self addSubview:self.centerPlayBtn];
-    [self.centerPlayBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.center.equalTo(self);
+    //时间
+    [self.bottomView addSubview:self.totalTimeLabel];
+    [self.totalTimeLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.progressSlider);
+        make.centerY.equalTo(self.bottomView).offset(6.);
     }];
+    
+    [self.bottomView addSubview:self.downBtn];
+    
+    [self.currentTimeLabel setContentCompressionResistancePriority:UILayoutPriorityDefaultHigh+1 forAxis:UILayoutConstraintAxisHorizontal];
+    [self.totalTimeLabel setContentCompressionResistancePriority:UILayoutPriorityDefaultHigh+1 forAxis:UILayoutConstraintAxisHorizontal];
+    [self.currentTimeLabel setContentHuggingPriority:UILayoutPriorityDefaultHigh+1 forAxis:UILayoutConstraintAxisHorizontal];
+    [self.totalTimeLabel setContentHuggingPriority:UILayoutPriorityDefaultHigh+1 forAxis:UILayoutConstraintAxisHorizontal];
+    
+//    [self addSubview:self.centerPlayBtn];
+//    [self.centerPlayBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.center.equalTo(self);
+//    }];
 }
 
 - (void)setOrientationLandscapeConstraint {
+    [self.playBtn mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.bottomView).offset(3.);
+    }];
     
+    [self.fullBtn mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.bottomView).offset(-3.);
+    }];
+    
+    [self.currentTimeLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.playBtn.mas_right).offset(3.);
+        make.centerY.equalTo(self.bottomView);
+    }];
+    
+    [self.downBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(self.bottomView);
+        make.width.equalTo(@36.);
+        make.height.equalTo(@20.);
+        make.right.equalTo(self.fullBtn.mas_left).offset(-7.);
+    }];
+    
+    [self.totalTimeLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.downBtn.mas_left).offset(-15.);
+        make.centerY.equalTo(self.bottomView);
+    }];
+    
+    [self.progressSlider mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.currentTimeLabel.mas_right).offset(10.);
+        make.right.equalTo(self.totalTimeLabel.mas_left).offset(-10.);
+        make.centerY.equalTo(self.bottomView);
+        make.height.equalTo(@20.);
+    }];
+    
+    self.downBtn.hidden = NO;
 }
 
 - (void)setOrientationPortraitConstraint {
-
+    self.downBtn.hidden = YES;
+    //删除约束
+    [self.downBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
+    }];
+    
+    [self.playBtn mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.bottomView).offset(0.);
+    }];
+    
+    [self.fullBtn mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.bottomView).offset(0.);
+    }];
+    
+    [self.progressSlider mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.playBtn.mas_right);
+        make.right.equalTo(self.fullBtn.mas_left);
+        make.centerY.equalTo(self.bottomView).offset(-7.);
+        make.height.equalTo(@20.);
+    }];
+    
+    [self.currentTimeLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.progressSlider);
+         make.centerY.equalTo(self.bottomView).offset(6.);
+    }];
+    
+    [self.totalTimeLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.progressSlider);
+        make.centerY.equalTo(self.bottomView).offset(6.);
+    }];
 }
 
 - (void)changePlayStatus:(BOOL)play
@@ -151,73 +231,39 @@ static CGFloat kToolHeight = 64; //标题和底部视图的高度
     }
 }
 
-//- (void)changeFullStatus:(BOOL)full
-//{
-//    if (full) {
-//        self.fullBtn.hidden = YES;
-//        self.shrinkBtn.hidden = NO;
-//    } else {
-//        self.fullBtn.hidden = NO;
-//        self.shrinkBtn.hidden = YES;
-//    }
-//}
-
 //MARK: buton Action
-- (void)playAction:(id)sender
-{
-    if ([self.delegate respondsToSelector:@selector(didClickPlayAction:)]) {
-        [self.delegate didClickPlayAction:sender];
-        [self changePlayStatus:YES];
-    }
-}
-
-- (void)pauseAction:(id)sender
-{
-    if ([self.delegate respondsToSelector:@selector(didClickPauseAction:)]) {
-        [self.delegate didClickPauseAction:sender];
-        [self changePlayStatus:NO];
-    }
-}
-
-//- (void)fullAction:(id)sender
-//{
-//    if ([self.delegate respondsToSelector:@selector(didClickFullScreenAction:)]) {
-//        [self.delegate didClickFullScreenAction:sender];
-//        [self changeFullStatus:YES];
-//    }
-//}
-//
-//- (void)shrinkAction:(id)sender
-//{
-//    if ([self.delegate respondsToSelector:@selector(didClickShrinkScreenAction:)]) {
-//        [self.delegate didClickShrinkScreenAction:sender];
-//        [self changeFullStatus:NO];
-//    }
-//}
 
 - (void)backAction:(id)sender
 {
-    if ([self.delegate respondsToSelector:@selector(didClickBackAction:)]) {
-        [self.delegate didClickBackAction:sender];
+    if ([self.delegate respondsToSelector:@selector(controlView:didClickBackAction:)]) {
+        [self.delegate controlView:self didClickBackAction:sender];
+    }
+}
+
+- (void)playAction:(id)sender
+{
+    if ([self.delegate respondsToSelector:@selector(controlView:didClickPlayAction:)]) {
+        [self.delegate controlView:self didClickPlayAction:sender];
     }
 }
 
 - (void)progressSliderValueChanged:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(progressSliderValueChanged:)]) {
-        [self.delegate progressSliderValueChanged:sender];
+    if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueChanged:)]) {
+        [self.delegate controlView:self progressSliderValueChanged:sender];
     }
 }
 
 - (void)progressSliderValueChangedEnd:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(progressSliderValueChangedEnd:)]) {
-        [self.delegate progressSliderValueChangedEnd:sender];
+    if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueChangedEnd:)]) {
+        [self.delegate controlView:self progressSliderValueChangedEnd:sender];
     }
 }
 
-//收拾 快进 快退
-- (void)quickType:(EQuickType)quickType timeStr:(NSString *)timeStr
+- (void)fullAction:(UIButton *)btn
 {
-    
+    if ([self.delegate respondsToSelector:@selector(controlView:didClickFullScreenAction:)]) {
+        [self.delegate controlView:self didClickFullScreenAction:btn];
+    }
 }
 
 //MARK: LLPlaybackControlViewProtocol
@@ -232,7 +278,7 @@ static CGFloat kToolHeight = 64; //标题和底部视图的高度
     NSMutableAttributedString *attri = [[NSMutableAttributedString alloc] initWithString:str];
     //    [attri addAttributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]} range:NSMakeRange([currentTime length], [aTotalTime length] + 1)];
     [attri addAttributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]} range:NSMakeRange(0,str.length)];
-    self.timeLabel.attributedText = attri;
+//    self.timeLabel.attributedText = attri;
 }
 
 - (void)updateProgress:(CGFloat)currentSecond
@@ -306,7 +352,8 @@ static CGFloat kToolHeight = 64; //标题和底部视图的高度
 {
     if(!_bottomBgImageView){
         _bottomBgImageView = [[UIImageView alloc] init];
-        _bottomBgImageView.image = [UIImage imageNamed:@"ll_player_bottom_shadow"];
+//        _bottomBgImageView.image = [UIImage imageNamed:@"ll_player_bottom_shadow"];
+        _bottomView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.7];
         _bottomBgImageView.userInteractionEnabled = YES;
         [self.bottomView addSubview:_bottomBgImageView];
     }
@@ -317,7 +364,8 @@ static CGFloat kToolHeight = 64; //标题和底部视图的高度
 {
     if(!_topBgImageView){
         _topBgImageView = [[UIImageView alloc] init];
-        _topBgImageView.image = [UIImage imageNamed:@"ll_player_top_shadow"];
+//        _topBgImageView.image = [UIImage imageNamed:@"ll_player_top_shadow"];
+//        _topBgImageView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4];
         _topBgImageView.userInteractionEnabled = YES;
         [self.topView addSubview:_topBgImageView];
     }
@@ -356,12 +404,25 @@ static CGFloat kToolHeight = 64; //标题和底部视图的高度
     return _fullBtn;
 }
 
+- (UIButton *)downBtn
+{
+    if(!_downBtn){
+        _downBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_downBtn setImage:[UIImage imageNamed:@"ll_player_download"] forState:UIControlStateNormal];
+        [_downBtn setImage:[UIImage imageNamed:@""] forState:UIControlStateSelected];
+        [_downBtn addTarget:self action:@selector(downLoadAction:) forControlEvents:UIControlEventTouchUpInside];
+        _downBtn.hidden = YES;
+    }
+    return _downBtn;
+}
+
 - (UILabel *)titleLabel
 {
     if(!_titleLabel){
         _titleLabel = [[UILabel alloc] init];
         _titleLabel.textAlignment = NSTextAlignmentCenter;
         _titleLabel.textColor = [UIColor whiteColor];
+        _titleLabel.hidden = YES;
     }
     return _titleLabel;
 }
@@ -381,16 +442,28 @@ static CGFloat kToolHeight = 64; //标题和底部视图的高度
     return _progressSlider;
 }
 
-- (UILabel *)timeLabel
+- (UILabel *)totalTimeLabel
 {
-    if(!_timeLabel){
-        _timeLabel = [[UILabel alloc] init];
-        _timeLabel.textAlignment = NSTextAlignmentCenter;
-        _timeLabel.textColor = [UIColor lightGrayColor];
-        _timeLabel.backgroundColor = [UIColor clearColor];
-        _timeLabel.font = [UIFont systemFontOfSize:12.];
+    if(!_totalTimeLabel){
+        _totalTimeLabel = [[UILabel alloc] init];
+        _totalTimeLabel.textAlignment = NSTextAlignmentRight;
+        _totalTimeLabel.textColor = [UIColor whiteColor];
+        _totalTimeLabel.font = [UIFont systemFontOfSize:12.];
+        _totalTimeLabel.text = @"00:10:03";
     }
-    return _timeLabel;
+    return _totalTimeLabel;
+}
+
+- (UILabel *)currentTimeLabel
+{
+    if(!_currentTimeLabel){
+        _currentTimeLabel = [[UILabel alloc] init];
+        _currentTimeLabel.textAlignment = NSTextAlignmentLeft;
+        _currentTimeLabel.textColor = [UIColor whiteColor];
+        _currentTimeLabel.font = [UIFont systemFontOfSize:12.];
+        _currentTimeLabel.text = @"00:05:03";
+    }
+    return _currentTimeLabel;
 }
 
 - (UIButton *)centerPlayBtn

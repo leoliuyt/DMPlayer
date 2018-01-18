@@ -8,28 +8,30 @@
 
 #import "LLPlayerView.h"
 #import <Masonry.h>
+#import "LLPlaybackControlView.h"
 
 static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContext;
 
-@interface LLPlayerView()
+@interface LLPlayerView()<UIGestureRecognizerDelegate>
 /** 播放属性 */
 @property (nonatomic, strong) AVPlayer               *player;
 @property (nonatomic, strong) AVPlayerItem           *playerItem;
 @property (nonatomic, strong) AVURLAsset             *urlAsset;
 @property (nonatomic, strong) AVAssetImageGenerator  *imageGenerator;
+
 /** playerLayer */
 @property (nonatomic, strong) AVPlayerLayer          *playerLayer;
-@property (nonatomic, strong) NSURL                  *videoURL;
 /** 视频填充模式 */
 @property (nonatomic, copy) NSString                 *videoGravity;
 
 @property (nonatomic, strong) id<NSObject> playbackTimeObserver;
+@property (nonatomic, assign) NSInteger    seekTime;//从seekTime处开始播放
 
-/**
- *  跳到time处播放
- *  @param seekTime这个时刻，这个时间点
- */
-@property (nonatomic, assign) double  seekTime;
+@property (nonatomic, strong) UITapGestureRecognizer *singleTap;
+@property (nonatomic, strong) UITapGestureRecognizer *doubleTap;
+
+@property (nonatomic, strong) UIView<LLPlaybackControlViewProtocol> *controlView;
+@property (nonatomic, strong) id<LLPlayerModelProtocol> playerModel;
 @end
 
 @implementation LLPlayerView
@@ -48,11 +50,79 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
     [super awakeFromNib];
 }
 
-/**
- *  设置Player相关参数
- */
-- (void)configPlayer {
-    self.urlAsset = [AVURLAsset assetWithURL:self.videoURL];
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    self.playerLayer.frame = self.bounds;
+}
+
+
+- (void)addPlayerToFatherView:(UIView *)fatherView
+{
+    [fatherView addSubview:self];
+    [self mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(fatherView);
+    }];
+}
+- (void)addObserver {
+    // app退到后台
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidEnterBackground) name:UIApplicationWillResignActiveNotification object:nil];
+    // app进入前台
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidEnterPlayground) name:UIApplicationDidBecomeActiveNotification object:nil];
+    
+    // 监听耳机插入和拔掉通知
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChangeListenerCallback:) name:AVAudioSessionRouteChangeNotification object:nil];
+    
+    // 监测设备方向
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(onDeviceOrientationChange)
+                                                 name:UIDeviceOrientationDidChangeNotification
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(onStatusBarOrientationChange)
+                                                 name:UIApplicationDidChangeStatusBarOrientationNotification
+                                               object:nil];
+}
+
+- (void)addGesture
+{
+    // 单击
+    self.singleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(singleTapAction:)];
+    self.singleTap.delegate                = self;
+    self.singleTap.numberOfTouchesRequired = 1; //手指数
+    self.singleTap.numberOfTapsRequired    = 1;
+    [self addGestureRecognizer:self.singleTap];
+    
+    // 双击(播放/暂停)
+    self.doubleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(doubleTapAction:)];
+    self.doubleTap.delegate                = self;
+    self.doubleTap.numberOfTouchesRequired = 1; //手指数
+    self.doubleTap.numberOfTapsRequired    = 2;
+    [self addGestureRecognizer:self.doubleTap];
+    
+    // 解决点击当前view时候响应其他控件事件
+    [self.singleTap setDelaysTouchesBegan:YES];
+    [self.doubleTap setDelaysTouchesBegan:YES];
+    // 双击失败响应单击事件
+    [self.singleTap requireGestureRecognizerToFail:self.doubleTap];
+}
+
+//MARK: public
+- (void)playerControlView:(UIView<LLPlaybackControlViewProtocol> *)controlView playerModel:(id<LLPlayerModelProtocol>)playerModel
+{
+    if (!controlView) {
+        self.controlView = (UIView<LLPlaybackControlViewProtocol> *)[[LLPlaybackControlView alloc] init];
+    } else {
+        self.controlView = controlView;
+    }
+    self.playerModel = playerModel;
+}
+
+- (void)configPlayer
+{
+    self.urlAsset = [AVURLAsset assetWithURL:self.contentURL];
     // 初始化playerItem
     self.playerItem = [AVPlayerItem playerItemWithAsset:self.urlAsset];
     // 每次都重新创建Player，替换replaceCurrentItemWithPlayerItem:，该方法阻塞线程
@@ -62,33 +132,11 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
     self.playerLayer = [AVPlayerLayer playerLayerWithPlayer:self.player];
     
     self.backgroundColor = [UIColor blackColor];
-//    // 此处为默认视频填充模式
-//    self.playerLayer.videoGravity = self.videoGravity;
-//
-//    // 自动播放
-//    self.isAutoPlay = YES;
-//
-//    // 添加播放进度计时器
-//    [self createTimer];
-//
-//    // 获取系统音量
-//    [self configureVolume];
-//
-//    // 本地文件不设置ZFPlayerStateBuffering状态
-//    if ([self.videoURL.scheme isEqualToString:@"file"]) {
-//        self.state = ZFPlayerStatePlaying;
-//        self.isLocalVideo = YES;
-//        [self.controlView zf_playerDownloadBtnState:NO];
-//    } else {
-//        self.state = ZFPlayerStateBuffering;
-//        self.isLocalVideo = NO;
-//        [self.controlView zf_playerDownloadBtnState:YES];
-//    }
-//    // 开始播放
-//    [self play];
-//    self.isPauseByUser = NO;
+    // 此处为默认视频填充模式
+    self.playerLayer.videoGravity = self.videoGravity;
+    // 开始播放
+    [self play];
 }
-
 
 -(void)removeKVOObserver{
     if(self.playerItem)
@@ -183,91 +231,55 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
         //currentItem.asset.duration.timescale计算的时候严重堵塞主线程，慎用
         /* A timescale of 1 means you can only specify whole seconds to seek to. The timescale is the number of parts per second. Use 600 for video, as Apple recommends, since it is a product of the common video frame rates like 50, 60, 25 and 24 frames per second*/
         NSLog(@"######@@@@@##%tu",self.playerItem.currentTime.timescale);
-        [self.player seekToTime:CMTimeMakeWithSeconds(time, self.playerItem.currentTime.timescale) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:^(BOOL finished) {
+        [self.player seekToTime:CMTimeMakeWithSeconds(time, self.playerItem.currentTime.timescale) toleranceBefore:CMTimeMake(1,1) toleranceAfter:CMTimeMake(1,1) completionHandler:^(BOOL finished) {
         }];
     }
 }
 
+//MARK: Setter
 
-
-
-//MARK: Observer
--(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context{
-//    if (context == PlayViewStatusObservationContext)
-//    {
-//        AVPlayerItem *playerItem = (AVPlayerItem *)object;
-//        if ([keyPath isEqualToString:@"status"]) {
-//            AVPlayerStatus status = [[change objectForKey:NSKeyValueChangeNewKey] integerValue];
-//            switch (status) {
-//                    case AVPlayerStatusUnknown:
-//                {
-//
-//                }
-//                    break;
-//                    case AVPlayerStatusReadyToPlay:
-//                {
-//                    CGFloat totalSecond = CMTimeGetSeconds(playerItem.duration);//获取视频总长度 并 转换成秒
-//                    NSLog(@"####%f",totalSecond);
-//                    self.totalTime = [self convertTime:totalSecond];// 转换成播放时间
-//                    [self configureVideoSlider:totalSecond];
-//                    [self monitoringPlayback:playerItem];// 监听播放状态
-//                    [self.playbackControlView changePlayStatus:YES];
-//                    if (self.seekTime) {
-//                        [self seekToTimeToPlay:self.seekTime];
-//                    }
-//                }
-//                    break;
-//                    case AVPlayerStatusFailed:
-//                {
-//
-//                }
-//                    break;
-//            }
-//        } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
-//            NSLog(@"---####%lld",playerItem.currentTime.value/playerItem.currentTime.timescale);
-//            NSTimeInterval timeInterval = [self availableDuration];// 计算缓冲进度
-//            CGFloat currentSecond = playerItem.currentTime.value/playerItem.currentTime.timescale;// 计算当前在第几秒
-//            if (timeInterval < currentSecond) {
-//                //loading
-//                [self startLoading];
-//            }else{
-//                //remove loading
-//                [self stopLoading];
-//            }
-//        } else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) {
-//            [self startLoading];
-//            //            [self.loadingView startAnimating];
-//            //            // 当缓冲是空的时候
-//            //            if (self.currentItem.playbackBufferEmpty) {
-//            //                self.state = WMPlayerStateBuffering;
-//            //                [self loadedTimeRanges];
-//            //            }
-//        } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {
-//            [self stopLoading];
-//            //            [self.loadingView stopAnimating];
-//            //            // 当缓冲好的时候
-//            //            if (self.currentItem.playbackLikelyToKeepUp && self.state == WMPlayerStateBuffering){
-//            //                self.state = WMPlayerStatePlaying;
-//            //            }
-//        }
-//    }
+- (void)setControlView:(UIView<LLPlaybackControlViewProtocol> *)controlView
+{
+    if (_controlView) {return;}
+    _controlView = controlView;
+    //    controlView.delegate = self;
+    [self addSubview:controlView];
+    [controlView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.mas_equalTo(UIEdgeInsetsZero);
+    }];
 }
 
-//MARK: Setter
+- (void)setPlayerModel:(id<LLPlayerModelProtocol>)playerModel
+{
+    _playerModel = playerModel;
+    
+    if (playerModel.seekTime) { self.seekTime = playerModel.seekTime; }
+    //    [self.controlView zf_playerModel:playerModel];
+    [self addPlayerToFatherView:playerModel.fatherView];
+    self.contentURL = playerModel.contentURL;
+}
+
+- (void)setContentURL:(NSURL *)contentURL
+{
+    _contentURL = contentURL;
+    [self addObserver];
+    
+}
+
 - (void)setPlayer:(AVPlayer *)player
 {
     _player = player;
     self.player = player;
 }
 
-- (void)setContentURL:(NSURL *)contentURL
-{
-    _contentURL = contentURL;
-    AVPlayerItem *playerItem = [AVPlayerItem playerItemWithURL:contentURL];
-    self.playerItem = playerItem;
-    AVPlayer *aPlayer = [AVPlayer playerWithPlayerItem:playerItem];
-    self.player = aPlayer;
-}
+//- (void)setContentURL:(NSURL *)contentURL
+//{
+//    _contentURL = contentURL;
+//    AVPlayerItem *playerItem = [AVPlayerItem playerItemWithURL:contentURL];
+//    self.playerItem = playerItem;
+//    AVPlayer *aPlayer = [AVPlayer playerWithPlayerItem:playerItem];
+//    self.player = aPlayer;
+//}
 
 - (void)setPlayerItem:(AVPlayerItem *)playerItem
 {
@@ -313,9 +325,87 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
 - (void)setVideoGravityType:(ELayerVideoGravityType)videoGravityType
 {
     _videoGravityType = videoGravityType;
-//    self.playerView.videoGravityType = videoGravityType;
+    NSString *videoGravity = AVLayerVideoGravityResizeAspect;
+    switch (videoGravityType) {
+        case ELayerVideoGravityTypeResize:
+            videoGravity = AVLayerVideoGravityResize;
+            break;
+        case ELayerVideoGravityTypeResizeAspect:
+            videoGravity = AVLayerVideoGravityResizeAspect;
+            break;
+        case ELayerVideoGravityTypeResizeAspectFill:
+            videoGravity = AVLayerVideoGravityResizeAspectFill;
+            break;
+        default:
+            videoGravity = AVLayerVideoGravityResizeAspect;
+            break;
+    }
+    self.videoGravity = videoGravity;
 }
 
+//MARK: private Method
+
+//MARK: Observer
+-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context{
+    if (context == PlayViewStatusObservationContext)
+    {
+        AVPlayerItem *playerItem = (AVPlayerItem *)object;
+        if ([keyPath isEqualToString:@"status"]) {
+            AVPlayerStatus status = [[change objectForKey:NSKeyValueChangeNewKey] integerValue];
+            switch (status) {
+                case AVPlayerStatusUnknown:
+                {
+                    
+                }
+                    break;
+                case AVPlayerStatusReadyToPlay:
+                {
+                    //                    CGFloat totalSecond = CMTimeGetSeconds(playerItem.duration);//获取视频总长度 并 转换成秒
+                    //                    NSLog(@"####%f",totalSecond);
+                    //                    self.totalTime = [self convertTime:totalSecond];// 转换成播放时间
+                    //                    [self configureVideoSlider:totalSecond];
+                    //                    [self monitoringPlayback:playerItem];// 监听播放状态
+                    //                    [self.playbackControlView changePlayStatus:YES];
+                    //                    if (self.seekTime) {
+                    //                        [self seekToTimeToPlay:self.seekTime];
+                    //                    }
+                }
+                    break;
+                case AVPlayerStatusFailed:
+                {
+                    
+                }
+                    break;
+            }
+        } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
+            NSLog(@"---####%lld",playerItem.currentTime.value/playerItem.currentTime.timescale);
+            NSTimeInterval timeInterval = [self availableDuration];// 计算缓冲进度
+            CGFloat currentSecond = playerItem.currentTime.value/playerItem.currentTime.timescale;// 计算当前在第几秒
+            if (timeInterval < currentSecond) {
+                //loading
+                //                [self startLoading];
+            }else{
+                //remove loading
+                //                [self stopLoading];
+            }
+        } else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) {
+            //            [self startLoading];
+            //            [self.loadingView startAnimating];
+            //            // 当缓冲是空的时候
+            //            if (self.currentItem.playbackBufferEmpty) {
+            //                self.state = WMPlayerStateBuffering;
+            //                [self loadedTimeRanges];
+            //            }
+        } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {
+            //            [self stopLoading];
+            //            [self.loadingView stopAnimating];
+            //            // 当缓冲好的时候
+            //            if (self.currentItem.playbackLikelyToKeepUp && self.state == WMPlayerStateBuffering){
+            //                self.state = WMPlayerStatePlaying;
+            //            }
+        }
+    }
+}
 
 
 @end

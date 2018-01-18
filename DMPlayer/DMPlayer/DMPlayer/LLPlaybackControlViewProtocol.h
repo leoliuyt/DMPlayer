@@ -1,48 +1,19 @@
 //
-//  LLPlaybackControlProtocol.h
+//  LLPlaybackControlViewProtocol.h
 //  DMPlayer
 //
-//  Created by lbq on 2018/1/17.
+//  Created by lbq on 2018/1/18.
 //  Copyright © 2018年 lbq. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM(NSUInteger, EQuickType) {
-    EQuickTypeForward,
-    EQuickTypeBackward,
-};
-@protocol LLPlaybackControlProtocol <NSObject>
-
-@optional
-//播放 暂停
-- (void)didClickPlayAction:(id)sender;
-
-- (void)didClickPauseAction:(id)sender;
-
-//全屏 小屏
-- (void)didClickFullScreenAction:(id)sender;
-
-- (void)didClickShrinkScreenAction:(id)sender;
-
-//退出
-- (void)didClickBackAction:(id)sender;
-
-//播放进度相关
-- (void)progressSliderValueChanged:(id)sender;
-
-- (void)progressSliderValueChangedEnd:(id)sender;
-
-//收拾 快进 快退
-- (void)quickType:(EQuickType)quickType timeStr:(NSString *)timeStr;
-
-@end
-
+@protocol LLPlaybackControlDelegate;
 @protocol LLPlaybackControlViewProtocol <NSObject>
 
 @required
 
-@property (nonatomic, weak) id<LLPlaybackControlProtocol> delegate;
+@property (nonatomic, weak) id<LLPlaybackControlDelegate> delegate;
 
 @optional
 // 修改播放状态

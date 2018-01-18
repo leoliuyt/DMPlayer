@@ -16,6 +16,7 @@
 		6B53A501200F5D1A004D0877 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A500200F5D1A004D0877 /* main.m */; };
 		6B53A50D200F6155004D0877 /* LLPlayerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A50C200F6155004D0877 /* LLPlayerView.m */; };
 		6B53A510200F61B0004D0877 /* LLPlaybackControlView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */; };
+		6B53A51620104CE1004D0877 /* LLPlayerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A51520104CE1004D0877 /* LLPlayerModel.m */; };
 		9EAAAB15200F8CBE00AB82F5 /* LLPlayer.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9EAAAB14200F8CBE00AB82F5 /* LLPlayer.xcassets */; };
 		9EAAAB18200F976000AB82F5 /* UIColor+LL.m in Sources */ = {isa = PBXBuildFile; fileRef = 9EAAAB17200F976000AB82F5 /* UIColor+LL.m */; };
 /* End PBXBuildFile section */
@@ -36,8 +37,12 @@
 		6B53A50C200F6155004D0877 /* LLPlayerView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LLPlayerView.m; sourceTree = "<group>"; };
 		6B53A50E200F61B0004D0877 /* LLPlaybackControlView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlView.h; sourceTree = "<group>"; };
 		6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LLPlaybackControlView.m; sourceTree = "<group>"; };
-		6B53A511200F61F2004D0877 /* LLPlaybackControlProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlProtocol.h; sourceTree = "<group>"; };
 		6B53A512200F6264004D0877 /* LLPlayerConfigure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlayerConfigure.h; sourceTree = "<group>"; };
+		6B53A51320104C7F004D0877 /* LLPlayerModelProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlayerModelProtocol.h; sourceTree = "<group>"; };
+		6B53A51420104CE1004D0877 /* LLPlayerModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlayerModel.h; sourceTree = "<group>"; };
+		6B53A51520104CE1004D0877 /* LLPlayerModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LLPlayerModel.m; sourceTree = "<group>"; };
+		6B53A51720108AF6004D0877 /* LLPlaybackControlDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlDelegate.h; sourceTree = "<group>"; };
+		6B53A51820108B21004D0877 /* LLPlaybackControlViewProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlViewProtocol.h; sourceTree = "<group>"; };
 		9EAAAB14200F8CBE00AB82F5 /* LLPlayer.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = LLPlayer.xcassets; sourceTree = "<group>"; };
 		9EAAAB16200F976000AB82F5 /* UIColor+LL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIColor+LL.h"; sourceTree = "<group>"; };
 		9EAAAB17200F976000AB82F5 /* UIColor+LL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIColor+LL.m"; sourceTree = "<group>"; };
@@ -101,7 +106,11 @@
 				6B53A50C200F6155004D0877 /* LLPlayerView.m */,
 				6B53A50E200F61B0004D0877 /* LLPlaybackControlView.h */,
 				6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */,
-				6B53A511200F61F2004D0877 /* LLPlaybackControlProtocol.h */,
+				6B53A51820108B21004D0877 /* LLPlaybackControlViewProtocol.h */,
+				6B53A51720108AF6004D0877 /* LLPlaybackControlDelegate.h */,
+				6B53A51320104C7F004D0877 /* LLPlayerModelProtocol.h */,
+				6B53A51420104CE1004D0877 /* LLPlayerModel.h */,
+				6B53A51520104CE1004D0877 /* LLPlayerModel.m */,
 				6B53A512200F6264004D0877 /* LLPlayerConfigure.h */,
 				9EAAAB14200F8CBE00AB82F5 /* LLPlayer.xcassets */,
 			);
@@ -241,7 +250,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -254,6 +263,7 @@
 				6B53A510200F61B0004D0877 /* LLPlaybackControlView.m in Sources */,
 				6B53A4F6200F5D1A004D0877 /* ViewController.m in Sources */,
 				6B53A50D200F6155004D0877 /* LLPlayerView.m in Sources */,
+				6B53A51620104CE1004D0877 /* LLPlayerModel.m in Sources */,
 				9EAAAB18200F976000AB82F5 /* UIColor+LL.m in Sources */,
 				6B53A501200F5D1A004D0877 /* main.m in Sources */,
 				6B53A4F3200F5D1A004D0877 /* AppDelegate.m in Sources */,
