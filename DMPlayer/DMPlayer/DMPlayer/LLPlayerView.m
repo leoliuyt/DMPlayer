@@ -12,7 +12,8 @@
 
 static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContext;
 
-@interface LLPlayerView()<UIGestureRecognizerDelegate>
+@interface LLPlayerView()<UIGestureRecognizerDelegate,
+LLPlaybackControlDelegate>
 /** 播放属性 */
 @property (nonatomic, strong) AVPlayer               *player;
 @property (nonatomic, strong) AVPlayerItem           *playerItem;
@@ -32,6 +33,14 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
 
 @property (nonatomic, strong) UIView<LLPlaybackControlViewProtocol> *controlView;
 @property (nonatomic, strong) id<LLPlayerModelProtocol> playerModel;
+
+@property (nonatomic, assign) EPlayerState playState; //播放状态
+
+@property (nonatomic, assign) BOOL isLocalVideo;//本地视频
+
+@property (nonatomic, assign) CGFloat sliderLastValue;
+
+@property (nonatomic, assign) BOOL isDragging;
 @end
 
 @implementation LLPlayerView
@@ -56,7 +65,6 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
     self.playerLayer.frame = self.bounds;
 }
 
-
 - (void)addPlayerToFatherView:(UIView *)fatherView
 {
     [fatherView addSubview:self];
@@ -66,9 +74,9 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
 }
 - (void)addObserver {
     // app退到后台
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidEnterBackground) name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
     // app进入前台
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidEnterPlayground) name:UIApplicationDidBecomeActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
     
     // 监听耳机插入和拔掉通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChangeListenerCallback:) name:AVAudioSessionRouteChangeNotification object:nil];
@@ -76,37 +84,37 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
     // 监测设备方向
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(onDeviceOrientationChange)
+                                             selector:@selector(onDeviceOrientationChange:)
                                                  name:UIDeviceOrientationDidChangeNotification
                                                object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(onStatusBarOrientationChange)
+                                             selector:@selector(onStatusBarOrientationChange:)
                                                  name:UIApplicationDidChangeStatusBarOrientationNotification
                                                object:nil];
 }
 
 - (void)addGesture
 {
-    // 单击
-    self.singleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(singleTapAction:)];
-    self.singleTap.delegate                = self;
-    self.singleTap.numberOfTouchesRequired = 1; //手指数
-    self.singleTap.numberOfTapsRequired    = 1;
-    [self addGestureRecognizer:self.singleTap];
-    
-    // 双击(播放/暂停)
-    self.doubleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(doubleTapAction:)];
-    self.doubleTap.delegate                = self;
-    self.doubleTap.numberOfTouchesRequired = 1; //手指数
-    self.doubleTap.numberOfTapsRequired    = 2;
-    [self addGestureRecognizer:self.doubleTap];
-    
-    // 解决点击当前view时候响应其他控件事件
-    [self.singleTap setDelaysTouchesBegan:YES];
-    [self.doubleTap setDelaysTouchesBegan:YES];
-    // 双击失败响应单击事件
-    [self.singleTap requireGestureRecognizerToFail:self.doubleTap];
+//    // 单击
+//    self.singleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(singleTapAction:)];
+//    self.singleTap.delegate                = self;
+//    self.singleTap.numberOfTouchesRequired = 1; //手指数
+//    self.singleTap.numberOfTapsRequired    = 1;
+//    [self addGestureRecognizer:self.singleTap];
+//
+//    // 双击(播放/暂停)
+//    self.doubleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(doubleTapAction:)];
+//    self.doubleTap.delegate                = self;
+//    self.doubleTap.numberOfTouchesRequired = 1; //手指数
+//    self.doubleTap.numberOfTapsRequired    = 2;
+//    [self addGestureRecognizer:self.doubleTap];
+//
+//    // 解决点击当前view时候响应其他控件事件
+//    [self.singleTap setDelaysTouchesBegan:YES];
+//    [self.doubleTap setDelaysTouchesBegan:YES];
+//    // 双击失败响应单击事件
+//    [self.singleTap requireGestureRecognizerToFail:self.doubleTap];
 }
 
 //MARK: public
@@ -118,6 +126,8 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
         self.controlView = controlView;
     }
     self.playerModel = playerModel;
+    
+    [self configPlayer];
 }
 
 - (void)configPlayer
@@ -134,8 +144,16 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
     self.backgroundColor = [UIColor blackColor];
     // 此处为默认视频填充模式
     self.playerLayer.videoGravity = self.videoGravity;
-    // 开始播放
-    [self play];
+    
+    [self createTimerObserver];
+    
+    if ([self.contentURL.scheme isEqualToString:@"file"]) {
+        self.isLocalVideo = YES;
+        self.playState = EPlayerStatePlaying;
+    } else {
+        self.isLocalVideo = NO;
+        self.playState = EPlayerStateBuffering;
+    }
 }
 
 -(void)removeKVOObserver{
@@ -153,11 +171,13 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
 
 - (void)play
 {
+    [self.controlView changePlayStatus:YES];
     [self.player play];
 }
 
 - (void)pause
 {
+    [self.controlView changePlayStatus:NO];
     [self.player pause];
 }
 
@@ -170,38 +190,23 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
     return result;
 }
 
-- (NSString *)convertTime:(CGFloat)second{
-    NSDate *d = [NSDate dateWithTimeIntervalSince1970:second];
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    if (second/3600 >= 1) {
-        [formatter setDateFormat:@"HH:mm:ss"];
-    } else {
-        [formatter setDateFormat:@"mm:ss"];
-    }
-    NSString *showtimeNew = [formatter stringFromDate:d];
-    return showtimeNew;
-}
-
-- (void)monitoringPlayback:(AVPlayerItem *)playerItem {
-//    __weak LLPlayerViewController *weakSelf = self;
-    //要求在播放期间请求调用
+- (void)createTimerObserver {
+    __weak typeof(self) weakSelf = self;
     //CMTimeMake(1, 1) 每隔一秒调用一次block
-    self.playbackTimeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:NULL usingBlock:^(CMTime time) {
-        CGFloat currentSecond = CMTimeGetSeconds(playerItem.currentTime);// 计算当前在第几秒
-//        [weakSelf updateVideoSlider:currentSecond];
-//        NSString *timeString = [weakSelf convertTime:currentSecond];
-//        if ([weakSelf.playbackControlView respondsToSelector:@selector(setPlayCurrentTime:totalTime:)]) {
-//            [weakSelf.playbackControlView setPlayCurrentTime:timeString totalTime:weakSelf.totalTime];
-//        }
+    self.playbackTimeObserver = [self.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(1, 1) queue:nil usingBlock:^(CMTime time){
+        AVPlayerItem *currentItem = weakSelf.playerItem;
+        NSArray *loadedRanges = currentItem.seekableTimeRanges;
+        if (loadedRanges.count > 0 && currentItem.duration.timescale != 0) {
+            NSInteger currentTime = (NSInteger)CMTimeGetSeconds([currentItem currentTime]);
+            CGFloat totalTime     = (CGFloat)currentItem.duration.value / currentItem.duration.timescale;
+            CGFloat value         = CMTimeGetSeconds([currentItem currentTime]) / totalTime;
+            [weakSelf.controlView setPlayCurrentTime:currentTime totalTime:totalTime sliderValue:value];
+        }
     }];
 }
 
-
 - (void)moviePlayDidEnd:(NSNotification *)notification {
     [self.player seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
-//        [self updateVideoSlider:0.0];
-//        [self.playbackControlView changePlayStatus:NO];
-//        [self.player pause];
     }];
 }
 
@@ -215,34 +220,13 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
         return 0.f;
     }
 }
-/**
- *  跳到time处播放
- *  @param seekTime这个时刻，这个时间点
- */
-- (void)seekToTimeToPlay:(double)time{
-    if (self.player&&self.player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
-        if (time>[self duration]) {
-            time = [self duration];
-        }
-        if (time<=0) {
-            time=0.0;
-        }
-        //        int32_t timeScale = self.player.currentItem.asset.duration.timescale;
-        //currentItem.asset.duration.timescale计算的时候严重堵塞主线程，慎用
-        /* A timescale of 1 means you can only specify whole seconds to seek to. The timescale is the number of parts per second. Use 600 for video, as Apple recommends, since it is a product of the common video frame rates like 50, 60, 25 and 24 frames per second*/
-        NSLog(@"######@@@@@##%tu",self.playerItem.currentTime.timescale);
-        [self.player seekToTime:CMTimeMakeWithSeconds(time, self.playerItem.currentTime.timescale) toleranceBefore:CMTimeMake(1,1) toleranceAfter:CMTimeMake(1,1) completionHandler:^(BOOL finished) {
-        }];
-    }
-}
 
 //MARK: Setter
-
 - (void)setControlView:(UIView<LLPlaybackControlViewProtocol> *)controlView
 {
     if (_controlView) {return;}
     _controlView = controlView;
-    //    controlView.delegate = self;
+    controlView.delegate = self;
     [self addSubview:controlView];
     [controlView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.mas_equalTo(UIEdgeInsetsZero);
@@ -265,21 +249,6 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
     [self addObserver];
     
 }
-
-- (void)setPlayer:(AVPlayer *)player
-{
-    _player = player;
-    self.player = player;
-}
-
-//- (void)setContentURL:(NSURL *)contentURL
-//{
-//    _contentURL = contentURL;
-//    AVPlayerItem *playerItem = [AVPlayerItem playerItemWithURL:contentURL];
-//    self.playerItem = playerItem;
-//    AVPlayer *aPlayer = [AVPlayer playerWithPlayerItem:playerItem];
-//    self.player = aPlayer;
-//}
 
 - (void)setPlayerItem:(AVPlayerItem *)playerItem
 {
@@ -343,7 +312,120 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
     self.videoGravity = videoGravity;
 }
 
+//MARK: getter
+- (NSString *)videoGravity
+{
+    if (!_videoGravity) {
+        return AVLayerVideoGravityResizeAspect;
+    }
+    return _videoGravity;
+}
+
 //MARK: private Method
+
+- (void)seekToTime:(NSInteger)dragedSeconds completionHandler:(void (^)(BOOL finished))completionHandler {
+    if (self.player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
+        // seekTime:completionHandler:不能精确定位
+        // 如果需要精确定位，可以使用seekToTime:toleranceBefore:toleranceAfter:completionHandler:
+        // 转换成CMTime才能给player来控制播放进度
+//        [self.controlView zf_playerActivity:YES];
+        [self.player pause];
+        CMTime dragedCMTime = CMTimeMake(dragedSeconds, 1); //kCMTimeZero
+        __weak typeof(self) weakSelf = self;
+        [self.player seekToTime:dragedCMTime toleranceBefore:CMTimeMake(1,1) toleranceAfter:CMTimeMake(1,1) completionHandler:^(BOOL finished) {
+//            [weakSelf.controlView zf_playerActivity:NO];
+            // 视频跳转回调
+            if (completionHandler) { completionHandler(finished); }
+            [weakSelf.player play];
+            weakSelf.seekTime = 0;
+//            weakSelf.isDragged = NO;
+            // 结束滑动
+//            [weakSelf.controlView zf_playerDraggedEnd];
+            if (!weakSelf.playerItem.isPlaybackLikelyToKeepUp && !weakSelf.isLocalVideo) { weakSelf.playState = EPlayerStateBuffering; }
+        }];
+    }
+}
+
+//MARK: Action & observer
+
+- (void)appResignActive:(NSNotification *)notification
+{
+    
+}
+
+- (void)appBecomeActive:(NSNotification *)notification
+{
+    
+}
+
+- (void)audioRouteChangeListenerCallback:(NSNotification *)notification
+{
+    
+}
+
+- (void)onDeviceOrientationChange:(NSNotification *)notification
+{
+    
+}
+
+- (void)onStatusBarOrientationChange:(NSNotification *)notification
+{
+    
+}
+
+
+//MARK: LLPlaybackControlDelegate
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickPlayAction:(UIButton *)sender
+{
+    if (sender.selected) {
+        [self pause];
+    } else {
+        [self play];
+    }
+}
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueBegin:(id)sender
+{
+    
+}
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueChanged:(UISlider *)slider
+{
+    // 拖动改变视频播放进度
+    if (self.player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
+        self.isDragging = YES;
+        BOOL style = false;
+        CGFloat value   = slider.value - self.sliderLastValue;
+        if (value > 0) { style = YES; }
+        if (value < 0) { style = NO; }
+        if (value == 0) { return; }
+        self.sliderLastValue  = slider.value;
+        CGFloat totalTime     = (CGFloat)_playerItem.duration.value / _playerItem.duration.timescale;
+        //计算出拖动的当前秒数
+        CGFloat dragedSeconds = floorf(totalTime * slider.value);
+        if (totalTime > 0) { // 当总时长 > 0时候才能拖动slider
+            [controlView draggedTime:dragedSeconds totalTime:totalTime isForward:style];
+        } else {
+            // 此时设置slider值为0
+            slider.value = 0;
+        }
+    } else { // player状态加载失败
+        // 此时设置slider值为0
+        slider.value = 0;
+    }
+}
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueEnd:(UISlider *)sender
+{
+    if (self.player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
+         self.isDragging = NO;
+        // 视频总时间长度
+        CGFloat total           = (CGFloat)_playerItem.duration.value / _playerItem.duration.timescale;
+        //计算出拖动的当前秒数
+        NSInteger dragedSeconds = floorf(total * sender.value);
+        [self seekToTime:dragedSeconds completionHandler:nil];
+    }
+}
 
 //MARK: Observer
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context{
@@ -355,54 +437,33 @@ static void *PlayViewStatusObservationContext = &PlayViewStatusObservationContex
             switch (status) {
                 case AVPlayerStatusUnknown:
                 {
-                    
+                    NSLog(@"AVPlayerStatus = AVPlayerStatusUnknown");
                 }
                     break;
                 case AVPlayerStatusReadyToPlay:
                 {
-                    //                    CGFloat totalSecond = CMTimeGetSeconds(playerItem.duration);//获取视频总长度 并 转换成秒
-                    //                    NSLog(@"####%f",totalSecond);
-                    //                    self.totalTime = [self convertTime:totalSecond];// 转换成播放时间
-                    //                    [self configureVideoSlider:totalSecond];
-                    //                    [self monitoringPlayback:playerItem];// 监听播放状态
-                    //                    [self.playbackControlView changePlayStatus:YES];
-                    //                    if (self.seekTime) {
-                    //                        [self seekToTimeToPlay:self.seekTime];
-                    //                    }
+                    NSLog(@"AVPlayerStatus = AVPlayerStatusReadyToPlay");
+                    [self setNeedsLayout];
+                    [self layoutIfNeeded];
+                    // 添加playerLayer到self.layer
+                    [self.layer insertSublayer:self.playerLayer atIndex:0];
                 }
                     break;
                 case AVPlayerStatusFailed:
                 {
-                    
+                    NSLog(@"AVPlayerStatus = AVPlayerStatusFailed");
                 }
                     break;
             }
         } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
+            NSLog(@"loadedTimeRanges = loadedTimeRanges");
             NSLog(@"---####%lld",playerItem.currentTime.value/playerItem.currentTime.timescale);
             NSTimeInterval timeInterval = [self availableDuration];// 计算缓冲进度
             CGFloat currentSecond = playerItem.currentTime.value/playerItem.currentTime.timescale;// 计算当前在第几秒
-            if (timeInterval < currentSecond) {
-                //loading
-                //                [self startLoading];
-            }else{
-                //remove loading
-                //                [self stopLoading];
-            }
         } else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) {
-            //            [self startLoading];
-            //            [self.loadingView startAnimating];
-            //            // 当缓冲是空的时候
-            //            if (self.currentItem.playbackBufferEmpty) {
-            //                self.state = WMPlayerStateBuffering;
-            //                [self loadedTimeRanges];
-            //            }
+            NSLog(@"playbackBufferEmpty = playbackBufferEmpty");
         } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {
-            //            [self stopLoading];
-            //            [self.loadingView stopAnimating];
-            //            // 当缓冲好的时候
-            //            if (self.currentItem.playbackLikelyToKeepUp && self.state == WMPlayerStateBuffering){
-            //                self.state = WMPlayerStatePlaying;
-            //            }
+             NSLog(@"playbackLikelyToKeepUp = playbackLikelyToKeepUp");
         }
     }
 }

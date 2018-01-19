@@ -23,7 +23,10 @@
 - (void)changeFullStatus:(BOOL)isFull;
 
 //设置时间
--(void)setPlayCurrentTime:(NSString *)currentTime totalTime:(NSString *)aTotalTime;
+- (void)setPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
+
+//拖拽播放进度条
+- (void)draggedTime:(NSInteger)draggedTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
 
 // configure progress max value
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;

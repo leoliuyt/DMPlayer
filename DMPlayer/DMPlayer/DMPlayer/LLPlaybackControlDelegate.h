@@ -18,10 +18,15 @@
 //退出
 - (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickBackAction:(id)sender;
 
+//下载
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickDownloadAction:(id)sender;
+
 //播放进度相关
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueBegin:(id)sender;
+
 - (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueChanged:(id)sender;
 
-- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueChangedEnd:(id)sender;
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueEnd:(id)sender;
 
 //收拾 快进 快退
 //- (void)quickType:(EQuickType)quickType timeStr:(NSString *)timeStr;

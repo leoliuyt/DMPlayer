@@ -9,6 +9,10 @@
 #import <UIKit/UIKit.h>
 #import "LLPlaybackControlViewProtocol.h"
 #import "LLPlaybackControlDelegate.h"
+typedef NS_ENUM(NSUInteger, EQuickType) {
+    EQuickTypeForward,
+    EQuickTypeBackward
+};
 
 @interface LLPlaybackControlView :UIView<LLPlaybackControlViewProtocol>
 
@@ -17,11 +21,17 @@
 //MARK: LLPlaybackControlViewProtocol 方法
 @property (nonatomic, weak) id<LLPlaybackControlDelegate> delegate;
 
+//修改播放按钮状态
 - (void)changePlayStatus:(BOOL)play;
+
+// 修改全屏状态
+- (void)changeFullStatus:(BOOL)isFull;
 
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;
 
-- (void)setPlayCurrentTime:(NSString *)currentTime totalTime:(NSString *)aTotalTime;
+- (void)setPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
+
+- (void)draggedTime:(NSInteger)draggedTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
 
 - (void)updateProgress:(CGFloat)currentSecond;
 
@@ -34,3 +44,7 @@
 
 @end
 
+@interface LLPlayQuickView :UIView
+@property (nonatomic, copy) NSString *timeStr;
+@property (nonatomic, assign) EQuickType quickType;
+@end

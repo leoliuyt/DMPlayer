@@ -17,6 +17,7 @@
 		6B53A50D200F6155004D0877 /* LLPlayerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A50C200F6155004D0877 /* LLPlayerView.m */; };
 		6B53A510200F61B0004D0877 /* LLPlaybackControlView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A50F200F61B0004D0877 /* LLPlaybackControlView.m */; };
 		6B53A51620104CE1004D0877 /* LLPlayerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 6B53A51520104CE1004D0877 /* LLPlayerModel.m */; };
+		6BD1A1A52011E9B900104B78 /* NSNumber+LL.m in Sources */ = {isa = PBXBuildFile; fileRef = 6BD1A1A42011E9B900104B78 /* NSNumber+LL.m */; };
 		9EAAAB15200F8CBE00AB82F5 /* LLPlayer.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9EAAAB14200F8CBE00AB82F5 /* LLPlayer.xcassets */; };
 		9EAAAB18200F976000AB82F5 /* UIColor+LL.m in Sources */ = {isa = PBXBuildFile; fileRef = 9EAAAB17200F976000AB82F5 /* UIColor+LL.m */; };
 /* End PBXBuildFile section */
@@ -43,6 +44,8 @@
 		6B53A51520104CE1004D0877 /* LLPlayerModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LLPlayerModel.m; sourceTree = "<group>"; };
 		6B53A51720108AF6004D0877 /* LLPlaybackControlDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlDelegate.h; sourceTree = "<group>"; };
 		6B53A51820108B21004D0877 /* LLPlaybackControlViewProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLPlaybackControlViewProtocol.h; sourceTree = "<group>"; };
+		6BD1A1A32011E9B900104B78 /* NSNumber+LL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSNumber+LL.h"; sourceTree = "<group>"; };
+		6BD1A1A42011E9B900104B78 /* NSNumber+LL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSNumber+LL.m"; sourceTree = "<group>"; };
 		9EAAAB14200F8CBE00AB82F5 /* LLPlayer.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = LLPlayer.xcassets; sourceTree = "<group>"; };
 		9EAAAB16200F976000AB82F5 /* UIColor+LL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIColor+LL.h"; sourceTree = "<group>"; };
 		9EAAAB17200F976000AB82F5 /* UIColor+LL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIColor+LL.m"; sourceTree = "<group>"; };
@@ -102,6 +105,8 @@
 			children = (
 				9EAAAB16200F976000AB82F5 /* UIColor+LL.h */,
 				9EAAAB17200F976000AB82F5 /* UIColor+LL.m */,
+				6BD1A1A32011E9B900104B78 /* NSNumber+LL.h */,
+				6BD1A1A42011E9B900104B78 /* NSNumber+LL.m */,
 				6B53A50B200F6155004D0877 /* LLPlayerView.h */,
 				6B53A50C200F6155004D0877 /* LLPlayerView.m */,
 				6B53A50E200F61B0004D0877 /* LLPlaybackControlView.h */,
@@ -265,6 +270,7 @@
 				6B53A50D200F6155004D0877 /* LLPlayerView.m in Sources */,
 				6B53A51620104CE1004D0877 /* LLPlayerModel.m in Sources */,
 				9EAAAB18200F976000AB82F5 /* UIColor+LL.m in Sources */,
+				6BD1A1A52011E9B900104B78 /* NSNumber+LL.m in Sources */,
 				6B53A501200F5D1A004D0877 /* main.m in Sources */,
 				6B53A4F3200F5D1A004D0877 /* AppDelegate.m in Sources */,
 			);

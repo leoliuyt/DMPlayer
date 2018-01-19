@@ -16,9 +16,19 @@ typedef NS_ENUM(NSUInteger, ELayerVideoGravityType) {
     ELayerVideoGravityTypeResizeAspectFill,
     ELayerVideoGravityTypeResizeAspect
 };
+
+typedef NS_ENUM(NSUInteger, EPlayerState) {
+    EPlayerStateFailed,     //播放失败
+    EPlayerStateBuffering,  //缓冲中
+    EPlayerStatePlaying,    //播放中
+    EPlayerStatePause,      //暂停播放
+    EPlayerStateStopped,    //停止播放
+};
+
 @interface LLPlayerView : UIView
 // 视频显示模式 类似图片的ContentMode
 @property (nonatomic, assign) ELayerVideoGravityType videoGravityType;
+@property (nonatomic, assign, readonly) EPlayerState playState; //播放状态
 //视频链接 可以是本地路径URL
 @property (nonatomic, strong) NSURL *contentURL;
 

@@ -6,6 +6,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -20,11 +21,29 @@
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PH8-1Q-edF">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="211"/>
+                                <color key="backgroundColor" red="0.0" green="0.6705882353" blue="0.93333333330000001" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="PH8-1Q-edF" secondAttribute="height" multiplier="16:9" id="OmS-2H-hXF"/>
+                                </constraints>
+                            </view>
+                        </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="PH8-1Q-edF" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="Lq1-l5-IrS"/>
+                            <constraint firstAttribute="trailing" secondItem="PH8-1Q-edF" secondAttribute="trailing" id="PrW-Rq-QCB"/>
+                            <constraint firstItem="PH8-1Q-edF" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="WT1-WC-zJr"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="fatherView" destination="PH8-1Q-edF" id="hYA-gV-vdC"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="117.59999999999999" y="118.29085457271366"/>
         </scene>
     </scenes>
 </document>

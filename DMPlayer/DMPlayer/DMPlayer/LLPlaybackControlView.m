@@ -10,9 +10,101 @@
 #import <Masonry.h>
 #import "LLPlayerConfigure.h"
 #import "UIColor+LL.h"
+#import "NSNumber+LL.h"
 
 static CGFloat kPlayerTopToolHeight = 64; //标题和底部视图的高度
 static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
+
+
+@interface LLPlayQuickView()
+
+@property (nonatomic, strong) UIView *bgView;
+@property (nonatomic, strong) UIImageView *quickImageView;
+@property (nonatomic, strong) UILabel *quickLabel;
+
+@end
+
+@implementation LLPlayQuickView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self makeUI];
+    }
+    return self;
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+}
+
+- (void)makeUI
+{
+    self.backgroundColor = [UIColor clearColor];
+//    self.bgView.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
+    [self.bgView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self);
+    }];
+    
+    CGSize size = self.quickImageView.image.size;
+    [self.quickImageView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self).offset(10.);
+        make.centerX.equalTo(self);
+        make.size.mas_equalTo(size);
+    }];
+    
+    [self.quickLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.quickImageView.mas_bottom).offset(8.);
+        make.left.right.equalTo(self);
+    }];
+}
+
+- (void)setQuickType:(EQuickType)quickType
+{
+    _quickType = quickType;
+    self.quickImageView.image = quickType == EQuickTypeBackward ? [UIImage imageNamed:@"ll_player_backward"] : [UIImage imageNamed:@"ll_player_forward"];
+}
+
+- (void)setTimeStr:(NSString *)quickStr
+{
+    _timeStr = quickStr;
+    self.quickLabel.text = quickStr;
+}
+
+- (UIView *)bgView
+{
+    if(!_bgView){
+        _bgView = [[UIView alloc] init];
+        _bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4];
+        [self addSubview:_bgView];
+    }
+    return _bgView;
+}
+
+- (UIImageView *)quickImageView
+{
+    if(!_quickImageView){
+        _quickImageView = [[UIImageView alloc] init];
+        _quickImageView.image = [UIImage imageNamed:@"ll_player_forward"];
+        [self addSubview:_quickImageView];
+    }
+    return _quickImageView;
+}
+
+- (UILabel *)quickLabel
+{
+    if(!_quickLabel){
+        _quickLabel = [[UILabel alloc] init];
+        _quickLabel.font = [UIFont systemFontOfSize:12.];
+        _quickLabel.textColor = [UIColor whiteColor];
+        _quickLabel.textAlignment = NSTextAlignmentCenter;
+        [self addSubview:_quickLabel];
+    }
+    return _quickLabel;
+}
+@end
 
 @interface LLPlaybackControlView()
 
@@ -31,6 +123,7 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 @property (nonatomic, strong) UIButton *downBtn;
 
 @property (nonatomic, strong) UIButton *centerPlayBtn;
+@property (nonatomic, strong) LLPlayQuickView *quickView;
 
 @end
 
@@ -146,6 +239,12 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     [self.currentTimeLabel setContentHuggingPriority:UILayoutPriorityDefaultHigh+1 forAxis:UILayoutConstraintAxisHorizontal];
     [self.totalTimeLabel setContentHuggingPriority:UILayoutPriorityDefaultHigh+1 forAxis:UILayoutConstraintAxisHorizontal];
     
+    [self addSubview:self.quickView];
+    [self.quickView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.size.mas_equalTo(CGSizeMake(110, 70));
+        make.center.equalTo(self);
+    }];
+    
 //    [self addSubview:self.centerPlayBtn];
 //    [self.centerPlayBtn mas_makeConstraints:^(MASConstraintMaker *make) {
 //        make.center.equalTo(self);
@@ -222,13 +321,12 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 
 - (void)changePlayStatus:(BOOL)play
 {
-    if (play) {
-        self.playBtn.hidden = YES;
-        self.centerPlayBtn.alpha = 0;
-    } else {
-        self.playBtn.hidden = NO;
-        self.centerPlayBtn.alpha = 1;
-    }
+    self.playBtn.selected = play;
+}
+
+- (void)changeFullStatus:(BOOL)isFull
+{
+    self.fullBtn.selected = isFull;
 }
 
 //MARK: buton Action
@@ -247,15 +345,23 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     }
 }
 
+- (void)progressSliderValueBegin:(UISlider *)sender
+{
+    if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueBegin:)]) {
+        [self.delegate controlView:self progressSliderValueBegin:sender];
+    }
+}
+
 - (void)progressSliderValueChanged:(id)sender {
     if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueChanged:)]) {
         [self.delegate controlView:self progressSliderValueChanged:sender];
     }
 }
 
-- (void)progressSliderValueChangedEnd:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueChangedEnd:)]) {
-        [self.delegate controlView:self progressSliderValueChangedEnd:sender];
+- (void)progressSliderValueEnd:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueEnd:)]) {
+        self.quickView.hidden = YES;
+        [self.delegate controlView:self progressSliderValueEnd:sender];
     }
 }
 
@@ -266,24 +372,34 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     }
 }
 
+- (void)downLoadAction:(UIButton *)btn
+{
+    if([self.delegate respondsToSelector:@selector(controlView:didClickDownloadAction:)]) {
+        [self.delegate controlView:self didClickDownloadAction:btn];
+    }
+}
+
 //MARK: LLPlaybackControlViewProtocol
-- (void)setProgressMaxValue:(CGFloat)aMaxValue
+
+- (void)setPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
 {
-    self.progressSlider.maximumValue = aMaxValue;
+    self.progressSlider.value = value;
+    self.currentTimeLabel.text = [@(currentTime) ll_secondFormatter];
+    self.totalTimeLabel.text = [@(aTotalTime) ll_secondFormatter];
 }
 
--(void)setPlayCurrentTime:(NSString *)currentTime totalTime:(NSString *)aTotalTime
-{
-    NSString *str = [NSString stringWithFormat:@"%@/%@",currentTime,aTotalTime];
-    NSMutableAttributedString *attri = [[NSMutableAttributedString alloc] initWithString:str];
-    //    [attri addAttributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]} range:NSMakeRange([currentTime length], [aTotalTime length] + 1)];
-    [attri addAttributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]} range:NSMakeRange(0,str.length)];
-//    self.timeLabel.attributedText = attri;
-}
-
-- (void)updateProgress:(CGFloat)currentSecond
-{
-    [self.progressSlider setValue:currentSecond animated:YES];
+- (void)draggedTime:(NSInteger)draggedTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd{
+    // 快进快退时候停止菊花
+    self.quickView.hidden = NO;
+    self.quickView.quickType = forawrd ? EQuickTypeForward : EQuickTypeBackward;
+    NSString *currentTimeStr = [@(draggedTime) ll_secondFormatter];
+    NSString *totalTimeStr   = [@(totalTime) ll_secondFormatter];
+    NSString *timeStr = [NSString stringWithFormat:@"%@/%@",currentTimeStr,totalTimeStr];
+    CGFloat  draggedValue    = (CGFloat)draggedTime/(CGFloat)totalTime;
+    self.currentTimeLabel.text = currentTimeStr;
+    self.totalTimeLabel.text = totalTimeStr;
+    self.progressSlider.value = draggedValue;
+    self.quickView.timeStr = timeStr;
 }
 
 //隐藏toolbar
@@ -436,8 +552,12 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
         _progressSlider.maximumTrackTintColor = [UIColor colorWithWhite:1 alpha:0.3];
         _progressSlider.value = 0.f;
         _progressSlider.continuous = YES;
+        // slider开始滑动事件
+        [_progressSlider addTarget:self action:@selector(progressSliderValueBegin:) forControlEvents:UIControlEventTouchDown];
+        // slider滑动中事件
         [_progressSlider addTarget:self action:@selector(progressSliderValueChanged:) forControlEvents:UIControlEventValueChanged];
-        [_progressSlider addTarget:self action:@selector(progressSliderValueChangedEnd:) forControlEvents:UIControlEventTouchUpInside];
+        // slider结束滑动事件
+        [_progressSlider addTarget:self action:@selector(progressSliderValueEnd:) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchCancel | UIControlEventTouchUpOutside];
     }
     return _progressSlider;
 }
@@ -475,6 +595,18 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     }
     return _centerPlayBtn;
 }
+
+- (LLPlayQuickView *)quickView
+{
+    if(!_quickView){
+        _quickView = [[LLPlayQuickView alloc] initWithFrame:CGRectMake(0, 0, 110, 70)];
+        _quickView.layer.cornerRadius = 3;
+        _quickView.layer.masksToBounds = YES;
+        _quickView.hidden = YES;
+    }
+    return _quickView;
+}
+
 - (void)dealloc
 {
     NSLog(@"%s",__func__);
