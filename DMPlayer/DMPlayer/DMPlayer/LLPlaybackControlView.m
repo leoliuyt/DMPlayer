@@ -124,6 +124,7 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 
 @property (nonatomic, strong) UIButton *centerPlayBtn;
 @property (nonatomic, strong) LLPlayQuickView *quickView;
+@property (nonatomic, assign) BOOL isDragging;
 
 @end
 
@@ -359,8 +360,9 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 }
 
 - (void)progressSliderValueEnd:(id)sender {
+    self.isDragging = NO;
+    self.quickView.hidden = YES;
     if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueEnd:)]) {
-        self.quickView.hidden = YES;
         [self.delegate controlView:self progressSliderValueEnd:sender];
     }
 }
@@ -383,13 +385,16 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 
 - (void)setPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
 {
-    self.progressSlider.value = value;
+    if (!self.isDragging) {
+        self.progressSlider.value = value;
+    }
     self.currentTimeLabel.text = [@(currentTime) ll_secondFormatter];
     self.totalTimeLabel.text = [@(aTotalTime) ll_secondFormatter];
 }
 
 - (void)draggedTime:(NSInteger)draggedTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd{
     // 快进快退时候停止菊花
+    self.isDragging = YES;
     self.quickView.hidden = NO;
     self.quickView.quickType = forawrd ? EQuickTypeForward : EQuickTypeBackward;
     NSString *currentTimeStr = [@(draggedTime) ll_secondFormatter];
