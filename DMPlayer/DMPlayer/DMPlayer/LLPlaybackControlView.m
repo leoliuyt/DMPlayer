@@ -15,7 +15,6 @@
 static CGFloat kPlayerTopToolHeight = 64; //标题和底部视图的高度
 static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 
-
 @interface LLPlayQuickView()
 
 @property (nonatomic, strong) UIView *bgView;
@@ -43,7 +42,6 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 - (void)makeUI
 {
     self.backgroundColor = [UIColor clearColor];
-//    self.bgView.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame));
     [self.bgView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self);
     }];
@@ -392,15 +390,15 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     self.totalTimeLabel.text = [@(aTotalTime) ll_secondFormatter];
 }
 
-- (void)draggedTime:(NSInteger)draggedTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd{
+- (void)draggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd{
     // 快进快退时候停止菊花
     self.isDragging = YES;
     self.quickView.hidden = NO;
     self.quickView.quickType = forawrd ? EQuickTypeForward : EQuickTypeBackward;
-    NSString *currentTimeStr = [@(draggedTime) ll_secondFormatter];
+    NSString *currentTimeStr = [@(draggingTime) ll_secondFormatter];
     NSString *totalTimeStr   = [@(totalTime) ll_secondFormatter];
     NSString *timeStr = [NSString stringWithFormat:@"%@/%@",currentTimeStr,totalTimeStr];
-    CGFloat  draggedValue    = (CGFloat)draggedTime/(CGFloat)totalTime;
+    CGFloat  draggedValue    = (CGFloat)draggingTime/(CGFloat)totalTime;
     self.currentTimeLabel.text = currentTimeStr;
     self.totalTimeLabel.text = totalTimeStr;
     self.progressSlider.value = draggedValue;
@@ -507,8 +505,8 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 {
     if(!_playBtn){
         _playBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_playBtn setImage:[UIImage imageNamed:@"ll_player_play"] forState:UIControlStateNormal];
-        [_playBtn setImage:[UIImage imageNamed:@"ll_player_pause"] forState:UIControlStateSelected];
+        [_playBtn setImage:[UIImage imageNamed:@"ll_player_pause"] forState:UIControlStateNormal];
+        [_playBtn setImage:[UIImage imageNamed:@"ll_player_play"] forState:UIControlStateSelected];
         [_playBtn addTarget:self action:@selector(playAction:) forControlEvents:UIControlEventTouchUpInside];
     }
     return _playBtn;

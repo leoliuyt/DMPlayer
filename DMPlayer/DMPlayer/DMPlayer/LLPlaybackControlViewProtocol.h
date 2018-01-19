@@ -26,7 +26,7 @@
 - (void)setPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
 
 //拖拽播放进度条
-- (void)draggedTime:(NSInteger)draggedTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
+- (void)draggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
 
 // configure progress max value
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;

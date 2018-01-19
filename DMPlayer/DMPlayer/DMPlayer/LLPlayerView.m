@@ -206,7 +206,10 @@ LLPlaybackControlDelegate>
 }
 
 - (void)moviePlayDidEnd:(NSNotification *)notification {
+    __weak typeof(self) weakSelf = self;
     [self.player seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        [strongSelf.controlView changePlayStatus:NO];
     }];
 }
 
@@ -336,7 +339,7 @@ LLPlaybackControlDelegate>
 //            [weakSelf.controlView zf_playerActivity:NO];
             // 视频跳转回调
             if (completionHandler) { completionHandler(finished); }
-            [weakSelf.player play];
+            [weakSelf play];
             weakSelf.seekTime = 0;
 //            weakSelf.isDragged = NO;
             // 结束滑动
@@ -404,7 +407,7 @@ LLPlaybackControlDelegate>
         //计算出拖动的当前秒数
         CGFloat dragedSeconds = floorf(totalTime * slider.value);
         if (totalTime > 0) { // 当总时长 > 0时候才能拖动slider
-            [controlView draggedTime:dragedSeconds totalTime:totalTime isForward:style];
+            [controlView draggingTime:dragedSeconds totalTime:totalTime isForward:style];
         } else {
             // 此时设置slider值为0
             slider.value = 0;
