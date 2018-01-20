@@ -12,10 +12,13 @@
 #import "UIColor+LL.h"
 #import "NSNumber+LL.h"
 
-static CGFloat kPlayerTopToolHeight = 64; //标题和底部视图的高度
-static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
-static CGFloat kPlayerRightToolH = 243.; //右部视图的高度
-static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
+static const CGFloat kPlayerAnimationTimeInterval             = 7.0f;
+static const CGFloat kPlayerControlBarAutoFadeOutTimeInterval = 0.35f;
+
+static const CGFloat kPlayerTopToolHeight = 64; //标题和底部视图的高度
+static const CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
+static const CGFloat kPlayerRightToolH = 243.; //右部视图的高度
+static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 
 @interface LLPlayQuickView()
 
@@ -130,6 +133,9 @@ static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 @property (nonatomic, strong) UIButton *centerPlayBtn;
 @property (nonatomic, strong) LLPlayQuickView *quickView;
 @property (nonatomic, assign) BOOL isDragging;
+
+@property (nonatomic, assign) BOOL showing;
+@property (nonatomic, assign) BOOL isFullScreen;
 
 @end
 
@@ -322,13 +328,15 @@ static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
         make.height.equalTo(@20.);
     }];
     
-    self.rightView.hidden = NO;
+    self.rightView.alpha = 1;
     self.downBtn.hidden = NO;
+    self.isFullScreen = YES;
 }
 
 - (void)setOrientationPortraitConstraint {
     self.downBtn.hidden = YES;
-    self.rightView.hidden = YES;
+    self.rightView.alpha = 0;
+    self.isFullScreen = NO;
     //删除约束
     [self.downBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
     }];
@@ -358,6 +366,7 @@ static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
         make.centerY.equalTo(self.bottomView).offset(6.);
     }];
 }
+
 
 //MARK: buton Action
 
@@ -453,7 +462,7 @@ static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 - (void)ll_controlDraggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd{
     // 快进快退时候停止菊花
     self.isDragging = YES;
-    self.quickView.hidden = NO;
+    self.quickView.alpha = 1;
     self.quickView.quickType = forawrd ? EQuickTypeForward : EQuickTypeBackward;
     NSString *currentTimeStr = [@(draggingTime) ll_secondFormatter];
     NSString *totalTimeStr   = [@(totalTime) ll_secondFormatter];
@@ -480,7 +489,7 @@ static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 - (void)ll_controlDraggEnd
 {
     self.isDragging = NO;
-    self.quickView.hidden = YES;
+    self.quickView.alpha = 0;
 }
 
 - (void)ll_controlDraggingVolume:(CGFloat)draggingVolume
@@ -488,47 +497,76 @@ static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
     self.volumeSlider.value = draggingVolume;
 }
 
-//隐藏toolbar
-- (void)hideToolBar:(BOOL)isHide animate:(BOOL)animated
-{
-    if (self.hideToolBar) {
-        return;
-    }
-    CGFloat duration = animated ? 0.5 : 0.0;
-    [UIView animateWithDuration:duration  animations:^{
-        self.topView.alpha = isHide ? 0. : 1.;
-        self.bottomView.alpha = isHide ? 0. : 1.;
+/**
+ *  显示控制层
+ */
+- (void)ll_controlShowControlView {
+//    if ([self.delegate respondsToSelector:@selector(zf_controlViewWillShow:isFullscreen:)]) {
+//        [self.delegate zf_controlViewWillShow:self isFullscreen:self.isFullScreen];
+//    }
+    [self ll_controlCancelAutoFadeOutControlView];
+    [UIView animateWithDuration:kPlayerControlBarAutoFadeOutTimeInterval animations:^{
+        [self showControlView];
+    } completion:^(BOOL finished) {
+        self.showing = YES;
+        [self autoFadeOutControlView];
     }];
 }
 
-- (void)hideTopBar:(BOOL)isHide animate:(BOOL)animated
-{
-    if (self.hideToolBar) {
-        return;
-    }
-    CGFloat duration = animated ? 0.5 : 0.0;
-    [UIView animateWithDuration:duration animations:^{
-        self.topView.alpha = isHide ? 0. : 1.;
+/**
+ *  隐藏控制层
+ */
+- (void)ll_controlHideControlView {
+//    if ([self.delegate respondsToSelector:@selector(zf_controlViewWillHidden:isFullscreen:)]) {
+//        [self.delegate zf_controlViewWillHidden:self isFullscreen:self.isFullScreen];
+//    }
+    [self ll_controlCancelAutoFadeOutControlView];
+    [UIView animateWithDuration:kPlayerControlBarAutoFadeOutTimeInterval animations:^{
+        [self hideControlView];
+    } completion:^(BOOL finished) {
+        self.showing = NO;
     }];
 }
 
-- (void)hideBottomBar:(BOOL)isHide animate:(BOOL)animated
+- (void)ll_controlShowOrHideControlView
 {
-    if (self.hideToolBar) {
-        return;
+    if (self.showing) {
+        [self ll_controlHideControlView];
+    } else {
+        [self ll_controlShowControlView];
     }
-    CGFloat duration = animated ? 0.5 : 0.0;
-    [UIView animateWithDuration:duration animations:^{
-        self.bottomView.alpha = isHide ? 0. : 1.;
-        self.centerPlayBtn.alpha = isHide ? 0. : 1.;
-    }];
 }
 
-- (void)setHideToolBar:(BOOL)hideToolBar
+- (void)ll_controlCancelAutoFadeOutControlView
 {
-    _hideToolBar = hideToolBar;
-    self.topView.hidden = YES;
-    self.bottomView.hidden = YES;
+     [NSObject cancelPreviousPerformRequestsWithTarget:self];
+}
+
+//MARK: private
+
+- (void)showControlView {
+    self.showing = YES;
+    if (self.isFullScreen) {
+        self.topView.alpha = 1;
+        self.rightView.alpha = 1;
+        self.bottomView.alpha = 1;
+    } else {
+        self.topView.alpha = 0;
+        self.rightView.alpha = 0;
+        self.bottomView.alpha = 1;
+    }
+}
+
+- (void)hideControlView {
+    self.showing = NO;
+    self.topView.alpha = 0;
+    self.rightView.alpha = 0;
+    self.bottomView.alpha = 0;
+}
+
+- (void)autoFadeOutControlView {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(ll_controlHideControlView) object:nil];
+    [self performSelector:@selector(ll_controlHideControlView) withObject:nil afterDelay:kPlayerAnimationTimeInterval];
 }
 
 //MARK:lazy
@@ -624,7 +662,6 @@ static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
         _titleLabel = [[UILabel alloc] init];
         _titleLabel.textAlignment = NSTextAlignmentCenter;
         _titleLabel.textColor = [UIColor whiteColor];
-        _titleLabel.hidden = YES;
     }
     return _titleLabel;
 }
@@ -688,7 +725,7 @@ static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
         _quickView = [[LLPlayQuickView alloc] initWithFrame:CGRectMake(0, 0, 110, 70)];
         _quickView.layer.cornerRadius = 3;
         _quickView.layer.masksToBounds = YES;
-        _quickView.hidden = YES;
+        _quickView.alpha = 0;
     }
     return _quickView;
 }

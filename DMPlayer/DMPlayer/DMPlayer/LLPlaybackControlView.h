@@ -35,7 +35,11 @@ typedef NS_ENUM(NSUInteger, EQuickType) {
 
 - (void)ll_controlDraggingVolume:(CGFloat)draggingVolume;
 
+- (void)ll_controlShowControlView;
+- (void)ll_controlHideControlView;
+- (void)ll_controlShowOrHideControlView;
 
+- (void)ll_controlCancelAutoFadeOutControlView;
 
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;
 

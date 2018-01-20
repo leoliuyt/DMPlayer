@@ -38,10 +38,16 @@
 
 - (void)ll_controlAddPanGesture;
 
+//显示控制层
+- (void)ll_controlPlayerShowControlView;
 
+//隐藏控制层
+- (void)ll_controlPlayerHideControlView;
 
+- (void)ll_controlShowOrHideControlView;
 
-
+//取消延时操作
+- (void)ll_controlCancelAutoFadeOutControlView;
 
 
 // configure progress max value

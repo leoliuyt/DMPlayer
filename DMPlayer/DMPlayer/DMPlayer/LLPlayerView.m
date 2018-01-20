@@ -144,6 +144,8 @@ LLPlaybackControlDelegate>
     self.playerModel = playerModel;
     
     [self configPlayer];
+    
+    [self createGesture];
 }
 
 /**
@@ -365,6 +367,19 @@ LLPlaybackControlDelegate>
 
 //MARK: private Method
 
+/**
+ *  创建手势
+ */
+- (void)createGesture {
+    // 单击
+    self.singleTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(singleTapGestureAction:)];
+    self.singleTap.delegate                = self;
+    self.singleTap.numberOfTouchesRequired = 1; //手指数
+    self.singleTap.numberOfTapsRequired    = 1;
+    [self addGestureRecognizer:self.singleTap];
+}
+
+
 - (void)seekToTime:(NSInteger)dragedSeconds completionHandler:(void (^)(BOOL finished))completionHandler {
     if (self.player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
         // seekTime:completionHandler:不能精确定位
@@ -386,6 +401,44 @@ LLPlaybackControlDelegate>
             if (!weakSelf.playerItem.isPlaybackLikelyToKeepUp && !weakSelf.isLocalVideo) { weakSelf.playState = EPlayerStateBuffering; }
         }];
     }
+}
+
+
+/**
+ *  pan垂直移动的方法
+ *
+ *  @param value void
+ */
+- (void)verticalMoved:(CGFloat)value {
+    if (self.isVolume) {
+        self.volumeViewSlider.value -= value/10000;
+        [self.controlView ll_controlDraggingVolume:self.volumeViewSlider.value];
+    } else {
+        [UIScreen mainScreen].brightness -= value/10000;
+    }
+}
+
+/**
+ *  pan水平移动的方法
+ *
+ *  @param value void
+ */
+- (void)horizontalMoved:(CGFloat)value {
+    // 每次滑动需要叠加时间
+    self.sumTime += value / 200;
+    // 需要限定sumTime的范围
+    CMTime totalTime           = self.playerItem.duration;
+    CGFloat totalMovieDuration = (CGFloat)totalTime.value/totalTime.timescale;
+    if (self.sumTime > totalMovieDuration) { self.sumTime = totalMovieDuration;}
+    if (self.sumTime < 0) { self.sumTime = 0; }
+    
+    BOOL style = false;
+    if (value > 0) { style = YES; }
+    if (value < 0) { style = NO; }
+    if (value == 0) { return; }
+    
+    self.isDragging = YES;
+    [self.controlView ll_controlDraggingTime:self.sumTime totalTime:totalMovieDuration isForward:style];
 }
 
 //MARK: Action & observer
@@ -488,43 +541,12 @@ LLPlaybackControlDelegate>
     }
 }
 
-
-/**
- *  pan垂直移动的方法
- *
- *  @param value void
- */
-- (void)verticalMoved:(CGFloat)value {
-    if (self.isVolume) {
-        self.volumeViewSlider.value -= value/10000;
-        [self.controlView ll_controlDraggingVolume:self.volumeViewSlider.value];
-    } else {
-        [UIScreen mainScreen].brightness -= value/10000;
-    }
+- (void)singleTapGestureAction:(UITapGestureRecognizer *)gesture
+{
+     [self.controlView ll_controlShowOrHideControlView];
 }
 
-/**
- *  pan水平移动的方法
- *
- *  @param value void
- */
-- (void)horizontalMoved:(CGFloat)value {
-    // 每次滑动需要叠加时间
-    self.sumTime += value / 200;
-    // 需要限定sumTime的范围
-    CMTime totalTime           = self.playerItem.duration;
-    CGFloat totalMovieDuration = (CGFloat)totalTime.value/totalTime.timescale;
-    if (self.sumTime > totalMovieDuration) { self.sumTime = totalMovieDuration;}
-    if (self.sumTime < 0) { self.sumTime = 0; }
-    
-    BOOL style = false;
-    if (value > 0) { style = YES; }
-    if (value < 0) { style = NO; }
-    if (value == 0) { return; }
-    
-    self.isDragging = YES;
-    [self.controlView ll_controlDraggingTime:self.sumTime totalTime:totalMovieDuration isForward:style];
-}
+
 //MARK: UIGestureDelegate
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
     if ([touch.view isKindOfClass:[UISlider class]]) {
