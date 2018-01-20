@@ -104,7 +104,7 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 }
 @end
 
-@interface LLPlaybackControlView()
+@interface LLPlaybackControlView()<UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) UIView *topView;
 @property (nonatomic, strong) UIImageView *topBgImageView;
@@ -318,16 +318,6 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     }];
 }
 
-- (void)changePlayStatus:(BOOL)play
-{
-    self.playBtn.selected = play;
-}
-
-- (void)changeFullStatus:(BOOL)isFull
-{
-    self.fullBtn.selected = isFull;
-}
-
 //MARK: buton Action
 
 - (void)backAction:(id)sender
@@ -358,8 +348,6 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 }
 
 - (void)progressSliderValueEnd:(id)sender {
-    self.isDragging = NO;
-    self.quickView.hidden = YES;
     if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueEnd:)]) {
         [self.delegate controlView:self progressSliderValueEnd:sender];
     }
@@ -379,9 +367,20 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     }
 }
 
+
 //MARK: LLPlaybackControlViewProtocol
 
-- (void)setPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
+- (void)ll_controlChangePlayStatus:(BOOL)play
+{
+    self.playBtn.selected = play;
+}
+
+- (void)ll_controlChangeFullStatus:(BOOL)isFull
+{
+    self.fullBtn.selected = isFull;
+}
+
+- (void)ll_controlPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
 {
     if (!self.isDragging) {
         self.progressSlider.value = value;
@@ -390,7 +389,7 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     self.totalTimeLabel.text = [@(aTotalTime) ll_secondFormatter];
 }
 
-- (void)draggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd{
+- (void)ll_controlDraggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd{
     // 快进快退时候停止菊花
     self.isDragging = YES;
     self.quickView.hidden = NO;
@@ -405,6 +404,23 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     self.quickView.timeStr = timeStr;
 }
 
+- (void)ll_controlAddPanGesture
+{
+//    // 添加平移手势，用来控制音量、亮度、快进快退
+//    UIPanGestureRecognizer *panRecognizer = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panGestureAction:)];
+//    panRecognizer.delegate = self;
+//    [panRecognizer setMaximumNumberOfTouches:1];
+//    [panRecognizer setDelaysTouchesBegan:YES];
+//    [panRecognizer setDelaysTouchesEnded:YES];
+//    [panRecognizer setCancelsTouchesInView:YES];
+//    [self addGestureRecognizer:panRecognizer];
+}
+
+- (void)ll_controlDraggEnd
+{
+    self.isDragging = NO;
+    self.quickView.hidden = YES;
+}
 //隐藏toolbar
 - (void)hideToolBar:(BOOL)isHide animate:(BOOL)animated
 {
@@ -572,7 +588,7 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
         _totalTimeLabel.textAlignment = NSTextAlignmentRight;
         _totalTimeLabel.textColor = [UIColor whiteColor];
         _totalTimeLabel.font = [UIFont systemFontOfSize:12.];
-        _totalTimeLabel.text = @"00:10:03";
+        _totalTimeLabel.text = @"00:00:00";
     }
     return _totalTimeLabel;
 }
@@ -584,7 +600,7 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
         _currentTimeLabel.textAlignment = NSTextAlignmentLeft;
         _currentTimeLabel.textColor = [UIColor whiteColor];
         _currentTimeLabel.font = [UIFont systemFontOfSize:12.];
-        _currentTimeLabel.text = @"00:05:03";
+        _currentTimeLabel.text = @"00:00:00";
     }
     return _currentTimeLabel;
 }

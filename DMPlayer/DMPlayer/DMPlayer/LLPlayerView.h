@@ -29,6 +29,8 @@ typedef NS_ENUM(NSUInteger, EPlayerState) {
 // 视频显示模式 类似图片的ContentMode
 @property (nonatomic, assign) ELayerVideoGravityType videoGravityType;
 @property (nonatomic, assign, readonly) EPlayerState playState; //播放状态
+@property (nonatomic, assign) BOOL disablePanGesture;//各种进度手势（音量、亮度、快进快退）
+@property (nonatomic, assign) BOOL mute;//静音
 //视频链接 可以是本地路径URL
 @property (nonatomic, strong) NSURL *contentURL;
 

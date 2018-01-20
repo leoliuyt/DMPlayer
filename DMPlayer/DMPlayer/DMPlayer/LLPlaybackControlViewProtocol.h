@@ -17,22 +17,37 @@
 
 @optional
 // 修改播放状态
-- (void)changePlayStatus:(BOOL)isPlaying;
+- (void)ll_controlChangePlayStatus:(BOOL)isPlaying;
 
 // 修改全屏状态
-- (void)changeFullStatus:(BOOL)isFull;
+- (void)ll_controlChangeFullStatus:(BOOL)isFull;
 
 //设置时间
-- (void)setPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
+- (void)ll_controlPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
 
 //拖拽播放进度条
-- (void)draggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
+- (void)ll_controlDraggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
+
+//拖拽播放进度条结束
+- (void)ll_controlDraggEnd;
+
+//添加UIPanGesture手势
+
+- (void)ll_controlAddPanGesture;
+
+
+
+
+
+
 
 // configure progress max value
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;
 
 // 更新播放进度条
 - (void)updateProgress:(CGFloat)currentSecond;
+
+
 
 //隐藏toolbar
 - (void)hideToolBar:(BOOL)isHide animate:(BOOL)animated;

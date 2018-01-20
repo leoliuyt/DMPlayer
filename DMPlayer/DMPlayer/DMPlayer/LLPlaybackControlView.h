@@ -22,16 +22,20 @@ typedef NS_ENUM(NSUInteger, EQuickType) {
 @property (nonatomic, weak) id<LLPlaybackControlDelegate> delegate;
 
 //修改播放按钮状态
-- (void)changePlayStatus:(BOOL)play;
+- (void)ll_controlChangePlayStatus:(BOOL)play;
 
 // 修改全屏状态
-- (void)changeFullStatus:(BOOL)isFull;
+- (void)ll_controlChangeFullStatus:(BOOL)isFull;
 
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;
 
-- (void)setPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
+- (void)ll_controlPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
 
-- (void)draggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
+- (void)ll_controlDraggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
+
+- (void)ll_controlAddPanGesture;
+
+- (void)ll_controlDraggEnd;
 
 - (void)updateProgress:(CGFloat)currentSecond;
 
