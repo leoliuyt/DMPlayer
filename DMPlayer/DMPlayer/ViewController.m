@@ -46,12 +46,27 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (NSString *)randomUrl
+{
+    NSArray *arr = @[ @"http://120.25.226.186:32812/resources/videos/minion_01.mp4",
+                      @"http://120.25.226.186:32812/resources/videos/minion_02.mp4",
+                      @"http://120.25.226.186:32812/resources/videos/minion_03.mp4",
+                      @"http://120.25.226.186:32812/resources/videos/minion_04.mp4",
+                      @"http://120.25.226.186:32812/resources/videos/minion_05.mp4",
+                      @"http://120.25.226.186:32812/resources/videos/minion_06.mp4",
+                      @"http://120.25.226.186:32812/resources/videos/minion_07.mp4",
+                      @"http://120.25.226.186:32812/resources/videos/minion_08.mp4",
+                      @"http://static.smartisanos.cn/common/video/proud-farmer.mp4"];
+    return arr[arc4random()%9];
+}
 
 - (LLPlayerModel *)playerModel
 {
     if(!_playerModel){
         _playerModel = [[LLPlayerModel alloc] init];
-        _playerModel.contentURL = [NSURL URLWithString:@"http://120.25.226.186:32812/resources/videos/minion_01.mp4"];
+        NSString *url = [self randomUrl];
+        NSLog(@"random url =%@",url);
+        _playerModel.contentURL = [NSURL URLWithString:url];
         _playerModel.fatherView = self.fatherView;
         
     }

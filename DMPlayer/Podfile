@@ -7,4 +7,5 @@ target 'DMPlayer' do
 
   # Pods for DMPlayer
 pod 'Masonry', '~> 1.1.0'
+pod 'MMMaterialDesignSpinner', '~> 0.2.5'
 end

@@ -41,6 +41,12 @@ typedef NS_ENUM(NSUInteger, EQuickType) {
 
 - (void)ll_controlCancelAutoFadeOutControlView;
 
+//加载的菊花
+- (void)ll_controlActivity:(BOOL)animated;
+
+- (void)ll_controlPlayEnd;
+
+
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;
 
 - (void)updateProgress:(CGFloat)currentSecond;

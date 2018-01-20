@@ -49,6 +49,12 @@
 //取消延时操作
 - (void)ll_controlCancelAutoFadeOutControlView;
 
+//加载的菊花
+- (void)ll_controlActivity:(BOOL)animated;
+
+//播放结束
+- (void)ll_controlPlayEnd;
+
 
 // configure progress max value
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;

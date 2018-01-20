@@ -248,6 +248,7 @@ LLPlaybackControlDelegate>
 
 - (void)moviePlayDidEnd:(NSNotification *)notification {
     __weak typeof(self) weakSelf = self;
+    [self.controlView ll_controlPlayEnd];
     [self.player seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         [strongSelf.controlView ll_controlChangePlayStatus:NO];
@@ -356,6 +357,12 @@ LLPlaybackControlDelegate>
     self.videoGravity = videoGravity;
 }
 
+- (void)setPlayState:(EPlayerState)playState
+{
+    _playState = playState;
+     [self.controlView ll_controlActivity:(playState == EPlayerStateBuffering)];
+}
+
 //MARK: getter
 - (NSString *)videoGravity
 {
@@ -385,12 +392,12 @@ LLPlaybackControlDelegate>
         // seekTime:completionHandler:不能精确定位
         // 如果需要精确定位，可以使用seekToTime:toleranceBefore:toleranceAfter:completionHandler:
         // 转换成CMTime才能给player来控制播放进度
-//        [self.controlView zf_playerActivity:YES];
+         [self.controlView ll_controlActivity:YES];
         [self.player pause];
         CMTime dragedCMTime = CMTimeMake(dragedSeconds, 1); //kCMTimeZero
         __weak typeof(self) weakSelf = self;
         [self.player seekToTime:dragedCMTime toleranceBefore:CMTimeMake(1,1) toleranceAfter:CMTimeMake(1,1) completionHandler:^(BOOL finished) {
-//            [weakSelf.controlView zf_playerActivity:NO];
+            [weakSelf.controlView ll_controlActivity:NO];
             // 视频跳转回调
             if (completionHandler) { completionHandler(finished); }
             [weakSelf play];

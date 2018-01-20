@@ -11,6 +11,7 @@
 #import "LLPlayerConfigure.h"
 #import "UIColor+LL.h"
 #import "NSNumber+LL.h"
+#import <MMMaterialDesignSpinner.h>
 
 static const CGFloat kPlayerAnimationTimeInterval             = 7.0f;
 static const CGFloat kPlayerControlBarAutoFadeOutTimeInterval = 0.35f;
@@ -136,6 +137,9 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 
 @property (nonatomic, assign) BOOL showing;
 @property (nonatomic, assign) BOOL isFullScreen;
+
+@property (nonatomic, strong) MMMaterialDesignSpinner *activity;
+@property (nonatomic, strong) UIButton *repeatBtn;
 
 @end
 
@@ -288,7 +292,17 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
     }];
     self.volumeSlider.transform = CGAffineTransformRotate(CGAffineTransformIdentity, -M_PI_2);
     
+    [self addSubview:self.activity];
+    [self.activity mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(self);
+        make.size.mas_equalTo(CGSizeMake(45., 45.));
+    }];
     
+    [self addSubview:self.repeatBtn];
+    [self.repeatBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(self);
+        make.size.mas_equalTo(CGSizeMake(45, 45));
+    }];
 //    [self addSubview:self.centerPlayBtn];
 //    [self.centerPlayBtn mas_makeConstraints:^(MASConstraintMaker *make) {
 //        make.center.equalTo(self);
@@ -384,6 +398,11 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
     }
 }
 
+- (void)repeatPlayAction:(UIButton *)sender
+{
+    
+}
+
 - (void)progressSliderValueBegin:(UISlider *)sender
 {
     if ([self.delegate respondsToSelector:@selector(controlView:progressSliderValueBegin:)]) {
@@ -416,8 +435,6 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
         [self.delegate controlView:self didClickDownloadAction:btn];
     }
 }
-
-
 
 - (void)volumeSliderValueBegin:(UISlider *)sender
 {
@@ -461,6 +478,7 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 
 - (void)ll_controlDraggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd{
     // 快进快退时候停止菊花
+    [self.activity stopAnimating];
     self.isDragging = YES;
     self.quickView.alpha = 1;
     self.quickView.quickType = forawrd ? EQuickTypeForward : EQuickTypeBackward;
@@ -540,6 +558,23 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 - (void)ll_controlCancelAutoFadeOutControlView
 {
      [NSObject cancelPreviousPerformRequestsWithTarget:self];
+}
+
+/** 加载的菊花 */
+- (void)ll_controlActivity:(BOOL)animated {
+    if (animated) {
+        [self.activity startAnimating];
+        self.quickView.alpha = 0;
+    } else {
+        [self.activity stopAnimating];
+    }
+}
+
+- (void)ll_controlPlayEnd
+{
+    self.repeatBtn.hidden = NO;
+    self.showing = NO;
+    [self hideControlView];
 }
 
 //MARK: private
@@ -776,6 +811,29 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
         [_volumeBtn setImage:[UIImage imageNamed:@"ll_player_voice"] forState:UIControlStateNormal];
     }
     return _volumeBtn;
+}
+
+- (MMMaterialDesignSpinner *)activity {
+    if (!_activity) {
+        _activity = [[MMMaterialDesignSpinner alloc] init];
+        _activity.lineWidth = 1;
+        _activity.duration  = 1;
+        _activity.tintColor = [[UIColor whiteColor] colorWithAlphaComponent:0.9];
+    }
+    return _activity;
+}
+
+
+- (UIButton *)repeatBtn
+{
+    if(!_repeatBtn){
+        _repeatBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_repeatBtn setImage:[UIImage imageNamed:@"ll_player_pause"] forState:UIControlStateNormal];
+        [_repeatBtn setImage:[UIImage imageNamed:@"ll_player_play"] forState:UIControlStateSelected];
+        [_repeatBtn addTarget:self action:@selector(repeatPlayAction:) forControlEvents:UIControlEventTouchUpInside];
+        _repeatBtn.hidden = YES;
+    }
+    return _repeatBtn;
 }
 
 - (void)dealloc
