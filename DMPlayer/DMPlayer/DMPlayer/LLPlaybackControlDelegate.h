@@ -22,11 +22,18 @@
 - (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickDownloadAction:(id)sender;
 
 //播放进度相关
-- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueBegin:(id)sender;
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueBegin:(UISlider *)sender;
 
-- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueChanged:(id)sender;
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueChanged:(UISlider *)sender;
 
-- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueEnd:(id)sender;
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueEnd:(UISlider *)sender;
+
+//音量进度相关
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView volumeSliderValueBegin:(UISlider *)sender;
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView volumeSliderValueChanged:(UISlider *)sender;
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView volumeSliderValueEnd:(UISlider *)sender;
 
 //收拾 快进 快退
 //- (void)quickType:(EQuickType)quickType timeStr:(NSString *)timeStr;

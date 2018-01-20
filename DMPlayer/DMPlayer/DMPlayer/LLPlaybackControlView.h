@@ -27,15 +27,17 @@ typedef NS_ENUM(NSUInteger, EQuickType) {
 // 修改全屏状态
 - (void)ll_controlChangeFullStatus:(BOOL)isFull;
 
-- (void)setProgressMaxValue:(CGFloat)aMaxValue;
-
 - (void)ll_controlPlayCurrentTime:(NSInteger)currentTime totalTime:(NSInteger)aTotalTime sliderValue:(CGFloat)value;
 
 - (void)ll_controlDraggingTime:(NSInteger)draggingTime totalTime:(NSInteger)totalTime isForward:(BOOL)forawrd;
 
-- (void)ll_controlAddPanGesture;
-
 - (void)ll_controlDraggEnd;
+
+- (void)ll_controlDraggingVolume:(CGFloat)draggingVolume;
+
+
+
+- (void)setProgressMaxValue:(CGFloat)aMaxValue;
 
 - (void)updateProgress:(CGFloat)currentSecond;
 

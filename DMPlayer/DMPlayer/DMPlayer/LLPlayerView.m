@@ -9,6 +9,7 @@
 #import "LLPlayerView.h"
 #import <Masonry.h>
 #import "LLPlaybackControlView.h"
+#import <MediaPlayer/MediaPlayer.h>
 
 // 枚举值，包含水平移动方向和垂直移动方向
 typedef NS_ENUM(NSInteger, EPanDirection){
@@ -51,9 +52,11 @@ LLPlaybackControlDelegate>
 
 @property (nonatomic, assign) BOOL muted;//静音
 
+//滑动控制
 @property (nonatomic, assign) EPanDirection panDirection;
-
 @property (nonatomic, assign) CGFloat sumTime;
+@property (nonatomic, assign) BOOL isVolume;
+@property (nonatomic, strong) UISlider *volumeViewSlider;
 @end
 
 @implementation LLPlayerView
@@ -143,6 +146,27 @@ LLPlaybackControlDelegate>
     [self configPlayer];
 }
 
+/**
+ *  获取系统音量
+ */
+- (void)configureVolume {
+    MPVolumeView *volumeView = [[MPVolumeView alloc] init];
+    self.volumeViewSlider = nil;
+    for (UIView *view in [volumeView subviews]){
+        if ([view.class.description isEqualToString:@"MPVolumeSlider"]){
+            self.volumeViewSlider = (UISlider *)view;
+            break;
+        }
+    }
+    // 使用这个category的应用不会随着手机静音键打开而静音，可在手机静音下播放声音
+    NSError *setCategoryError = nil;
+    BOOL success = [[AVAudioSession sharedInstance]
+                    setCategory: AVAudioSessionCategoryPlayback
+                    error: &setCategoryError];
+    
+    if (!success) { /* handle the error in setCategoryError */ }
+}
+
 - (void)configPlayer
 {
     self.urlAsset = [AVURLAsset assetWithURL:self.contentURL];
@@ -159,6 +183,8 @@ LLPlaybackControlDelegate>
     self.playerLayer.videoGravity = self.videoGravity;
     
     [self createTimerObserver];
+    
+    [self configureVolume];
     
     if ([self.contentURL.scheme isEqualToString:@"file"]) {
         self.isLocalVideo = YES;
@@ -396,7 +422,7 @@ LLPlaybackControlDelegate>
     // 我们要响应水平移动和垂直移动
     // 根据上次和本次移动的位置，算出一个速率的point
     CGPoint veloctyPoint = [gesture velocityInView:self];
-    
+
     // 判断是垂直移动还是水平移动
     switch (gesture.state) {
         case UIGestureRecognizerStateBegan: { // 开始移动
@@ -411,12 +437,12 @@ LLPlaybackControlDelegate>
                 self.sumTime      = time.value/time.timescale;
             } else if (x < y) { // 垂直移动
                 self.panDirection = EPanDirectionVertical;
-//                // 开始滑动的时候,状态改为正在控制音量
-//                if (locationPoint.x > self.bounds.size.width / 2) {
-//                    self.isVolume = YES;
-//                }else { // 状态改为显示亮度调节
-//                    self.isVolume = NO;
-//                }
+                // 开始滑动的时候,状态改为正在控制音量
+                if (locationPoint.x > self.bounds.size.width / 2) {
+                    self.isVolume = YES;
+                }else { // 状态改为显示亮度调节
+                    self.isVolume = NO;
+                }
             }
             break;
         }
@@ -449,7 +475,7 @@ LLPlaybackControlDelegate>
                 }
                 case EPanDirectionVertical:{
                     // 垂直移动结束后，把状态改为不再控制音量
-//                    self.isVolume = NO;
+                    self.isVolume = NO;
                     break;
                 }
                 default:
@@ -469,7 +495,12 @@ LLPlaybackControlDelegate>
  *  @param value void
  */
 - (void)verticalMoved:(CGFloat)value {
-//    self.isVolume ? (self.volumeViewSlider.value -= value / 10000) : ([UIScreen mainScreen].brightness -= value / 10000);
+    if (self.isVolume) {
+        self.volumeViewSlider.value -= value/10000;
+        [self.controlView ll_controlDraggingVolume:self.volumeViewSlider.value];
+    } else {
+        [UIScreen mainScreen].brightness -= value/10000;
+    }
 }
 
 /**
@@ -492,7 +523,6 @@ LLPlaybackControlDelegate>
     if (value == 0) { return; }
     
     self.isDragging = YES;
-//    [self.controlView zf_playerDraggedTime:self.sumTime totalTime:totalMovieDuration isForward:style hasPreview:NO];
     [self.controlView ll_controlDraggingTime:self.sumTime totalTime:totalMovieDuration isForward:style];
 }
 //MARK: UIGestureDelegate
@@ -530,7 +560,7 @@ LLPlaybackControlDelegate>
         if (value < 0) { style = NO; }
         if (value == 0) { return; }
         self.sliderLastValue  = slider.value;
-        CGFloat totalTime     = (CGFloat)_playerItem.duration.value / _playerItem.duration.timescale;
+        CGFloat totalTime     = (CGFloat)self.playerItem.duration.value / self.playerItem.duration.timescale;
         //计算出拖动的当前秒数
         CGFloat dragedSeconds = floorf(totalTime * slider.value);
         if (totalTime > 0) { // 当总时长 > 0时候才能拖动slider
@@ -550,12 +580,27 @@ LLPlaybackControlDelegate>
     if (self.player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
          self.isDragging = NO;
         // 视频总时间长度
-        CGFloat total           = (CGFloat)_playerItem.duration.value / _playerItem.duration.timescale;
+        CGFloat total           = (CGFloat)self.playerItem.duration.value / self.playerItem.duration.timescale;
         //计算出拖动的当前秒数
         NSInteger dragedSeconds = floorf(total * sender.value);
         [self.controlView ll_controlDraggEnd];
         [self seekToTime:dragedSeconds completionHandler:nil];
     }
+}
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView volumeSliderValueBegin:(UISlider *)sender
+{
+    
+}
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView volumeSliderValueChanged:(UISlider *)sender
+{
+    self.volumeViewSlider.value = sender.value;
+}
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView volumeSliderValueEnd:(UISlider *)sender
+{
+    
 }
 
 //MARK: Observer
@@ -590,11 +635,16 @@ LLPlaybackControlDelegate>
                         [self addGestureRecognizer:panRecognizer];
                     }
                     
+                    CGFloat totalDuration = self.playerItem.duration.value / self.playerItem.duration.timescale;
+                    //设置初始值
+                    [self.controlView ll_controlPlayCurrentTime:0 totalTime:totalDuration sliderValue:0];
                     // 跳到xx秒播放视频
                     if (self.seekTime) {
                         [self seekToTime:self.seekTime completionHandler:nil];
                     }
                     self.player.muted = self.mute;
+                    //设置音量初始值
+                    [self.controlView ll_controlDraggingVolume:self.volumeViewSlider.value];
                 }
                     break;
                 case AVPlayerStatusFailed:

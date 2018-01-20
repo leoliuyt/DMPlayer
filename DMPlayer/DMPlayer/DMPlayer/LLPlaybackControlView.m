@@ -14,6 +14,8 @@
 
 static CGFloat kPlayerTopToolHeight = 64; //标题和底部视图的高度
 static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
+static CGFloat kPlayerRightToolH = 243.; //右部视图的高度
+static CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 
 @interface LLPlayQuickView()
 
@@ -119,6 +121,11 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 @property (nonatomic, strong) UILabel *totalTimeLabel;
 @property (nonatomic, strong) UILabel *currentTimeLabel;
 @property (nonatomic, strong) UIButton *downBtn;
+
+@property (nonatomic, strong) UIView *rightView;
+@property (nonatomic, strong) UIImageView *rightBgImageView;
+@property (nonatomic, strong) UISlider *volumeSlider;
+@property (nonatomic, strong) UIButton *volumeBtn;
 
 @property (nonatomic, strong) UIButton *centerPlayBtn;
 @property (nonatomic, strong) LLPlayQuickView *quickView;
@@ -244,6 +251,38 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
         make.center.equalTo(self);
     }];
     
+    //right view
+    [self addSubview:self.rightView];
+    [self.rightView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self).offset(-10.);
+//        make.bottom.equalTo(self.bottomView.mas_top).offset(-26.);
+        make.centerY.equalTo(self).offset(-20.);
+        make.size.mas_equalTo(CGSizeMake(40, kPlayerRightToolH));
+    }];
+    
+    [self.rightView addSubview:self.rightBgImageView];
+    [self.rightBgImageView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self.rightView);
+    }];
+    
+    [self.rightView addSubview:self.volumeBtn];
+    [self.volumeBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.equalTo(self.rightView);
+        make.bottom.equalTo(self.rightView);
+        make.height.equalTo(@(kPlayerVolumeBtnH));
+    }];
+    
+    CGFloat sliderH = (kPlayerRightToolH - kPlayerVolumeBtnH - 10);
+    self.volumeSlider.layer.anchorPoint = CGPointMake(0, 0.5);
+    [self.rightView addSubview:self.volumeSlider];
+    [self.volumeSlider mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.rightView.mas_centerX).offset(-sliderH/2.);
+        make.centerY.equalTo(self.volumeBtn.mas_top);
+        make.size.mas_equalTo(CGSizeMake(sliderH, 40));
+    }];
+    self.volumeSlider.transform = CGAffineTransformRotate(CGAffineTransformIdentity, -M_PI_2);
+    
+    
 //    [self addSubview:self.centerPlayBtn];
 //    [self.centerPlayBtn mas_makeConstraints:^(MASConstraintMaker *make) {
 //        make.center.equalTo(self);
@@ -283,11 +322,13 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
         make.height.equalTo(@20.);
     }];
     
+    self.rightView.hidden = NO;
     self.downBtn.hidden = NO;
 }
 
 - (void)setOrientationPortraitConstraint {
     self.downBtn.hidden = YES;
+    self.rightView.hidden = YES;
     //删除约束
     [self.downBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
     }];
@@ -368,6 +409,26 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
 }
 
 
+
+- (void)volumeSliderValueBegin:(UISlider *)sender
+{
+    if ([self.delegate respondsToSelector:@selector(controlView:volumeSliderValueBegin:)]) {
+        [self.delegate controlView:self volumeSliderValueBegin:sender];
+    }
+}
+
+- (void)volumeSliderValueChanged:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(controlView:volumeSliderValueChanged:)]) {
+        [self.delegate controlView:self volumeSliderValueChanged:sender];
+    }
+}
+
+- (void)volumeSliderValueEnd:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(controlView:volumeSliderValueEnd:)]) {
+        [self.delegate controlView:self volumeSliderValueEnd:sender];
+    }
+}
+
 //MARK: LLPlaybackControlViewProtocol
 
 - (void)ll_controlChangePlayStatus:(BOOL)play
@@ -421,6 +482,12 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
     self.isDragging = NO;
     self.quickView.hidden = YES;
 }
+
+- (void)ll_controlDraggingVolume:(CGFloat)draggingVolume
+{
+    self.volumeSlider.value = draggingVolume;
+}
+
 //隐藏toolbar
 - (void)hideToolBar:(BOOL)isHide animate:(BOOL)animated
 {
@@ -624,6 +691,54 @@ static CGFloat kPlayerBottomToolH = 40.; //标题和底部视图的高度
         _quickView.hidden = YES;
     }
     return _quickView;
+}
+
+- (UIView *)rightView
+{
+    if(!_rightView){
+        _rightView = [[UIView alloc] init];
+        _rightView.backgroundColor = [UIColor clearColor];
+        
+    }
+    return _rightView;
+}
+
+- (UIImageView *)rightBgImageView
+{
+    if(!_rightBgImageView){
+        _rightBgImageView = [[UIImageView alloc] init];
+        _rightBgImageView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.7];
+        _rightBgImageView.userInteractionEnabled = YES;
+    }
+    return _rightBgImageView;
+}
+
+- (UISlider *)volumeSlider
+{
+    if(!_volumeSlider){
+        _volumeSlider = [[UISlider alloc] init];
+        [_volumeSlider setThumbImage:[UIImage imageNamed:@"ll_player_point"] forState:UIControlStateNormal];
+        _volumeSlider.minimumTrackTintColor = [UIColor ll_colorWithHexString:@"E2368E"];
+        _volumeSlider.maximumTrackTintColor = [UIColor colorWithWhite:1 alpha:0.3];
+        _volumeSlider.value = 0.f;
+        _volumeSlider.continuous = YES;
+        // slider开始滑动事件
+        [_volumeSlider addTarget:self action:@selector(volumeSliderValueBegin:) forControlEvents:UIControlEventTouchDown];
+        // slider滑动中事件
+        [_volumeSlider addTarget:self action:@selector(volumeSliderValueChanged:) forControlEvents:UIControlEventValueChanged];
+        // slider结束滑动事件
+        [_volumeSlider addTarget:self action:@selector(volumeSliderValueEnd:) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchCancel | UIControlEventTouchUpOutside];
+    }
+    return _volumeSlider;
+}
+
+- (UIButton *)volumeBtn
+{
+    if(!_volumeBtn){
+        _volumeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_volumeBtn setImage:[UIImage imageNamed:@"ll_player_voice"] forState:UIControlStateNormal];
+    }
+    return _volumeBtn;
 }
 
 - (void)dealloc

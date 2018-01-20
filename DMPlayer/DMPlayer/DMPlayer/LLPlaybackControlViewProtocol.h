@@ -31,6 +31,9 @@
 //拖拽播放进度条结束
 - (void)ll_controlDraggEnd;
 
+//拖拽音量进度条
+- (void)ll_controlDraggingVolume:(CGFloat)draggingVolume;
+
 //添加UIPanGesture手势
 
 - (void)ll_controlAddPanGesture;
