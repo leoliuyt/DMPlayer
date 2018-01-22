@@ -658,7 +658,9 @@ LLPlaybackControlDelegate>
 
 - (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickFullScreenAction:(UIButton *)sender
 {
-    [self toOrientation:UIInterfaceOrientationLandscapeLeft];
+    UIInterfaceOrientation orientation = sender.selected ? UIInterfaceOrientationPortrait:UIInterfaceOrientationLandscapeLeft;
+    [self.controlView ll_controlChangeFullStatus:!sender.selected];
+    [self toOrientation:orientation];
 }
 
 - (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueBegin:(id)sender
