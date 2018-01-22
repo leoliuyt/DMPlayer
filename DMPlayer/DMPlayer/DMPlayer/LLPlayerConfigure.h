@@ -9,11 +9,14 @@
 #ifndef LLPlayerConfigure_h
 #define LLPlayerConfigure_h
 
-#define LLPlayerSrcName(file) [@"LLPlayer.bundle" stringByAppendingPathComponent:file]
-typedef NS_ENUM(NSUInteger, ELayerVideoGravityType) {
-    ELayerVideoGravityTypeResize,
-    ELayerVideoGravityTypeResizeAspectFill,
-    ELayerVideoGravityTypeResizeAspect
-};
+#define kScreenW [[UIScreen mainScreen] bounds].size.width
+#define kScreenH [[UIScreen mainScreen] bounds].size.height
+
+//#define LLPlayerSrcName(file) [@"LLPlayer.bundle" stringByAppendingPathComponent:file]
+//typedef NS_ENUM(NSUInteger, ELayerVideoGravityType) {
+//    ELayerVideoGravityTypeResize,
+//    ELayerVideoGravityTypeResizeAspectFill,
+//    ELayerVideoGravityTypeResizeAspect
+//};
 
 #endif /* LLPlayerConfigure_h */
