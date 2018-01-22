@@ -246,7 +246,7 @@ LLPlaybackControlDelegate>
     }];
 }
 
-- (void)moviePlayDidEnd:(NSNotification *)notification {
+- (void)playToEndTime:(NSNotification *)notification {
     __weak typeof(self) weakSelf = self;
     [self.controlView ll_controlPlayEnd];
     [self.player seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
@@ -332,7 +332,7 @@ LLPlaybackControlDelegate>
         
         [self.player replaceCurrentItemWithPlayerItem:_playerItem];
         // 添加视频播放结束通知
-        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(moviePlayDidEnd:) name:AVPlayerItemDidPlayToEndTimeNotification object:_playerItem];
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(playToEndTime:) name:AVPlayerItemDidPlayToEndTimeNotification object:_playerItem];
     }
 }
 
@@ -361,6 +361,10 @@ LLPlaybackControlDelegate>
 {
     _playState = playState;
      [self.controlView ll_controlActivity:(playState == EPlayerStateBuffering)];
+    if (playState == EPlayerStateFailed) {
+        NSError *error = [self.playerItem error];
+        [self.controlView ll_controlStatusFailed:error];
+    }
 }
 
 //MARK: getter
@@ -573,6 +577,22 @@ LLPlaybackControlDelegate>
     }
 }
 
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickRepeatPlayAction:(UIButton *)sender
+{
+    self.playState = EPlayerStatePlaying;
+    [self play];
+}
+
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickFailPlayAction:(UIButton *)sender
+{
+    if ([self.contentURL.scheme isEqualToString:@"file"]) {
+        self.playState = EPlayerStatePlaying;
+    } else {
+        self.playState = EPlayerStateBuffering;
+    }
+    [self play];
+}
+
 - (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView progressSliderValueBegin:(id)sender
 {
     
@@ -679,18 +699,28 @@ LLPlaybackControlDelegate>
                 case AVPlayerStatusFailed:
                 {
                     NSLog(@"AVPlayerStatus = AVPlayerStatusFailed");
+                    self.playState = EPlayerStateFailed;
                 }
                     break;
             }
         } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
             NSLog(@"loadedTimeRanges = loadedTimeRanges");
-            NSLog(@"---####%lld",playerItem.currentTime.value/playerItem.currentTime.timescale);
-            NSTimeInterval timeInterval = [self availableDuration];// 计算缓冲进度
-            CGFloat currentSecond = playerItem.currentTime.value/playerItem.currentTime.timescale;// 计算当前在第几秒
+//            NSLog(@"---####%lld",playerItem.currentTime.value/playerItem.currentTime.timescale);
+//            NSTimeInterval timeInterval = [self availableDuration];// 计算缓冲进度
+//            CGFloat currentSecond = playerItem.currentTime.value/playerItem.currentTime.timescale;// 计算当前在第几秒
         } else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) {
             NSLog(@"playbackBufferEmpty = playbackBufferEmpty");
+            // 当缓冲是空的时候
+            if (self.playerItem.playbackBufferEmpty) {
+                self.playState = EPlayerStateBuffering;
+            }
         } else if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {
              NSLog(@"playbackLikelyToKeepUp = playbackLikelyToKeepUp");
+            // 当缓冲好的时候
+            if (self.playerItem.playbackLikelyToKeepUp && self.playState == EPlayerStateBuffering){
+                NSLog(@"playbackLikelyToKeepUp=======inner");
+                self.playState = EPlayerStatePlaying;
+            }
         }
     }
 }

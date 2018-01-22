@@ -55,6 +55,8 @@
 //播放结束
 - (void)ll_controlPlayEnd;
 
+- (void)ll_controlStatusFailed:(NSError *)error;
+
 
 // configure progress max value
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;

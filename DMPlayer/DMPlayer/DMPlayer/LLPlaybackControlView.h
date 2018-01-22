@@ -46,6 +46,8 @@ typedef NS_ENUM(NSUInteger, EQuickType) {
 
 - (void)ll_controlPlayEnd;
 
+- (void)ll_controlStatusFailed:(NSError *)error;
+
 
 - (void)setProgressMaxValue:(CGFloat)aMaxValue;
 

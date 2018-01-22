@@ -12,6 +12,13 @@
 @optional
 //播放 暂停
 - (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickPlayAction:(UIButton *)sender;
+
+//播放完毕 重新播放
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickRepeatPlayAction:(UIButton *)sender;
+
+//加载失败 点击重试
+- (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickFailPlayAction:(UIButton *)sender;
+
 //全屏 小屏
 - (void)controlView:(UIView<LLPlaybackControlViewProtocol> *)controlView didClickFullScreenAction:(UIButton *)sender;
 

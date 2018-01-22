@@ -140,6 +140,7 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 
 @property (nonatomic, strong) MMMaterialDesignSpinner *activity;
 @property (nonatomic, strong) UIButton *repeatBtn;
+@property (nonatomic, strong) UIButton *failBtn;
 
 @end
 
@@ -300,8 +301,13 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
     
     [self addSubview:self.repeatBtn];
     [self.repeatBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.center.equalTo(self);
+        make.edges.equalTo(self);
+    }];
+    
+    [self addSubview:self.failBtn];
+    [self.failBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.center.equalTo(self);
-        make.size.mas_equalTo(CGSizeMake(45, 45));
     }];
 //    [self addSubview:self.centerPlayBtn];
 //    [self.centerPlayBtn mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -400,7 +406,12 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 
 - (void)repeatPlayAction:(UIButton *)sender
 {
-    
+    self.showing = NO;
+    [self hideControlView];
+    self.repeatBtn.hidden = YES;
+    if ([self.delegate respondsToSelector:@selector(controlView:didClickRepeatPlayAction:)]) {
+        [self.delegate controlView:self didClickRepeatPlayAction:sender];
+    }
 }
 
 - (void)progressSliderValueBegin:(UISlider *)sender
@@ -452,6 +463,16 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 - (void)volumeSliderValueEnd:(id)sender {
     if ([self.delegate respondsToSelector:@selector(controlView:volumeSliderValueEnd:)]) {
         [self.delegate controlView:self volumeSliderValueEnd:sender];
+    }
+}
+
+- (void)failBtnAction:(UIButton *)sender
+{
+    self.showing = NO;
+    [self hideControlView];
+    self.failBtn.hidden = YES;
+    if([self.delegate respondsToSelector:@selector(controlView:didClickFailPlayAction:)]) {
+        [self.delegate controlView:self didClickFailPlayAction:sender];
     }
 }
 
@@ -575,6 +596,11 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
     self.repeatBtn.hidden = NO;
     self.showing = NO;
     [self hideControlView];
+}
+
+- (void)ll_controlStatusFailed:(NSError *)error
+{
+    self.failBtn.hidden = NO;
 }
 
 //MARK: private
@@ -828,12 +854,24 @@ static const CGFloat kPlayerVolumeBtnH = 38.; //右部视图的高度
 {
     if(!_repeatBtn){
         _repeatBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_repeatBtn setImage:[UIImage imageNamed:@"ll_player_pause"] forState:UIControlStateNormal];
-        [_repeatBtn setImage:[UIImage imageNamed:@"ll_player_play"] forState:UIControlStateSelected];
+        [_repeatBtn setImage:[UIImage imageNamed:@"ll_player_repeat_video"] forState:UIControlStateNormal];
         [_repeatBtn addTarget:self action:@selector(repeatPlayAction:) forControlEvents:UIControlEventTouchUpInside];
         _repeatBtn.hidden = YES;
     }
     return _repeatBtn;
+}
+
+- (UIButton *)failBtn {
+    if (!_failBtn) {
+        _failBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+        [_failBtn setTitle:@"加载失败,点击重试" forState:UIControlStateNormal];
+        [_failBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        _failBtn.titleLabel.font = [UIFont systemFontOfSize:14.0];
+        _failBtn.backgroundColor = [UIColor colorWithWhite:0 alpha:0.7];
+        [_failBtn addTarget:self action:@selector(failBtnAction:) forControlEvents:UIControlEventTouchUpInside];
+        _failBtn.hidden = YES;
+    }
+    return _failBtn;
 }
 
 - (void)dealloc
